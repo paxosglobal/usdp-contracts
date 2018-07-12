@@ -1,0 +1,31 @@
+{
+  "name": "stablecoin",
+  "version": "0.0.1",
+  "description": "Paxos-issued USD-collateralized ERC20 stablecoin",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "coverage": "solidity-coverage",
+    "solium": "solium -d contracts/ --fix",
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paxos-bankchain/stablecoin-contracts.git"
+  },
+  "author": "PAXOS",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/paxos-bankchain/stablecoin-contracts/issues"
+  },
+  "homepage": "https://github.com/paxos-bankchain/stablecoin-contracts#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "ganache-cli": "^6.1.2",
+    "solidity-coverage": "^0.5.4",
+    "solium": "^1.1.8",
+    "truffle": "^4.1.11"
+  }
+}
