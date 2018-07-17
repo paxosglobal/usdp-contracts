@@ -1,5 +1,5 @@
 const Stablecoin = artifacts.require('StablecoinImplementation');
-const Proxy = artifacts.require('StablecoinProxy');
+const Proxy = artifacts.require('ERC20BasicProxy');
 
 module.exports = async function(deployer) {
   await deployer;

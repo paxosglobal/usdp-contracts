@@ -3,7 +3,6 @@ pragma solidity ^0.4.24;
 
 import "./zeppelin/SafeMath.sol";
 import "./UpgradeabilityStorage.sol";
-import "./StablecoinEventInterface.sol";
 
 
 /**
@@ -18,7 +17,7 @@ import "./StablecoinEventInterface.sol";
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract StablecoinImplementation is UpgradeabilityStorage, StablecoinEventInterface {
+contract StablecoinImplementation is UpgradeabilityStorage {
 
     /**
      * MATH
@@ -48,6 +47,34 @@ contract StablecoinImplementation is UpgradeabilityStorage, StablecoinEventInter
 
     // SUPPLY CONTROL DATA
     address public supplyController;
+
+    /**
+     * EVENTS
+     */
+
+    // ERC20 BASIC EVENTS
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    // OWNABLE EVENTS
+    event OwnershipTransferred(
+        address indexed oldOwner,
+        address indexed newOwner
+    );
+
+    // PAUSABLE EVENTS
+    event Pause();
+    event Unpause();
+
+    // SUPPLY CONTROL EVENTS
+    event SupplyIncreased(address indexed to, uint256 value);
+    event SupplyDecreased(address indexed from, uint256 value);
+    event SupplyControllerSet(
+        address indexed oldSupplyController,
+        address indexed newSupplyController
+    );
+
+    // UPGRADEABILITY EVENTS
+    event Upgraded(address implementation);
 
     /**
      * FUNCTIONALITY

@@ -2,11 +2,10 @@ pragma solidity ^0.4.24;
 
 
 import "./UpgradeabilityStorage.sol";
-import "./StablecoinEventInterface.sol";
 
 
 /**
- * @title StablecoinProxy
+ * @title ERC20BasicProxy
  * @dev This proxy contract looks at the address for the implementation
  * and forwards *all* calls to the implementation contract; there are
  * no external functions in this Proxy contract. This Proxy will
@@ -16,12 +15,7 @@ import "./StablecoinEventInterface.sol";
  * this contract. All relevant the storage for the actual contract is eternally
  * in this Proxy contract and never in the implementation contract itself.
  */
-contract StablecoinProxy is UpgradeabilityStorage, StablecoinEventInterface {
-
-    /**
-     * GENERIC DELEGATION PROXY FUNCTIONALITY
-     */
-
+contract ERC20BasicProxy is UpgradeabilityStorage {
     /**
      * @dev Contract constructor.
      * @param _impl Address of the initial implementation.
@@ -71,10 +65,10 @@ contract StablecoinProxy is UpgradeabilityStorage, StablecoinEventInterface {
     }
 
     /**
-     * DELEGATED Stablecoin PUBLIC INTERFACE
+     * DELEGATED ERC20 BASIC PUBLIC INTERFACE
      */
 
-    // ERC20 BASIC INTERFACE
+    event Transfer(address indexed from, address indexed to, uint256 value);
 
     function name() public view returns (string) {
         _delegate();
@@ -97,58 +91,6 @@ contract StablecoinProxy is UpgradeabilityStorage, StablecoinEventInterface {
     }
 
     function transfer(address to, uint256 value) public returns (bool) {
-        _delegate();
-    }
-
-    // OWNABLE INTERFACE
-
-    function owner() public view returns (address) {
-        _delegate();
-    }
-
-    function transferOwnership(address _newOwner) public {
-        _delegate();
-    }
-
-    // PAUSABLE INTERFACE
-
-    function paused() public view returns (address) {
-        _delegate();
-    }
-
-    function pause() public {
-        _delegate();
-    }
-
-    function unpause() public {
-        _delegate();
-    }
-
-    // SUPPLY CONTROL INTERFACE
-
-    function supplyController() public view returns (address) {
-        _delegate();
-    }
-
-    function setSupplyController(address _newSupplyController) public {
-        _delegate();
-    }
-
-    function increaseSupply(uint256 _value) public returns (bool success) {
-        _delegate();
-    }
-
-    function decreaseSupply(uint256 _value) public returns (bool success) {
-        _delegate();
-    }
-
-    // UPGRADEABILITY INTERFACE
-
-    function upgradeTo(address newImplementation) public {
-        _delegate();
-    }
-
-    function implementation() public view returns (address) {
         _delegate();
     }
 }

@@ -1,5 +1,5 @@
 const StablecoinMock = artifacts.require('./mocks/StablecoinWithBalance.sol');
-const Proxy = artifacts.require('../contracts/StablecoinProxy.sol');
+const Proxy = artifacts.require('../contracts/ERC20BasicProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
 
