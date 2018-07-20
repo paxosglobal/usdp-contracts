@@ -1,5 +1,5 @@
 const Stablecoin = artifacts.require('../contracts/StablecoinImplementation.sol');
-const Proxy = artifacts.require('../contracts/ERC20BasicProxy.sol');
+const Proxy = artifacts.require('../contracts/ERC20Proxy.sol');
 
 const StablecoinMock = artifacts.require('./mocks/StablecoinWithBalance.sol');
 

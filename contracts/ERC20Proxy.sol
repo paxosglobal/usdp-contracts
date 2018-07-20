@@ -5,7 +5,7 @@ import "./UpgradeabilityStorage.sol";
 
 
 /**
- * @title ERC20BasicProxy
+ * @title ERC20Proxy
  * @dev This proxy contract looks at the address for the implementation
  * and forwards *all* calls to the implementation contract; there are
  * no external functions in this Proxy contract. This Proxy will
@@ -15,7 +15,7 @@ import "./UpgradeabilityStorage.sol";
  * this contract. All relevant the storage for the actual contract is eternally
  * in this Proxy contract and never in the implementation contract itself.
  */
-contract ERC20BasicProxy is UpgradeabilityStorage {
+contract ERC20Proxy is UpgradeabilityStorage {
     /**
      * @dev Contract constructor.
      * @param _impl Address of the initial implementation.
@@ -69,6 +69,11 @@ contract ERC20BasicProxy is UpgradeabilityStorage {
      */
 
     event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
 
     function name() public view returns (string) {
         _delegate();
@@ -91,6 +96,20 @@ contract ERC20BasicProxy is UpgradeabilityStorage {
     }
 
     function transfer(address to, uint256 value) public returns (bool) {
+        _delegate();
+    }
+
+    function allowance(address owner, address spender)
+        public view returns (uint256) {
+        _delegate();
+    }
+
+    function transferFrom(address from, address to, uint256 value)
+    public returns (bool) {
+        _delegate();
+    }
+
+    function approve(address spender, uint256 value) public returns (bool) {
         _delegate();
     }
 }

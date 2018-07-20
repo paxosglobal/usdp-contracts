@@ -13,6 +13,18 @@ clean:
 fmt:
 	@npm run solium
 
+.PHONY:ganache
+ganache:
+	@npm run ganache
+
+.PHONY:compile
+compile:
+	@npm run compile
+
+.PHONY:migrate
+migrate:
+	@npm run migrate
+
 .PHONY:test-contracts
 test-contracts:
 	@npm test

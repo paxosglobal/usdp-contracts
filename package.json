@@ -7,7 +7,10 @@
     "test": "test"
   },
   "scripts": {
+    "compile": "truffle compile",
     "coverage": "solidity-coverage",
+    "ganache": "ganache-cli",
+    "migrate": "truffle migrate",
     "solium": "solium -d contracts/ --fix",
     "test": "truffle test"
   },
