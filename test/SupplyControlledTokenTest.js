@@ -147,9 +147,14 @@ contract('Stablecoin', function([owner, newSupplyController, otherAddress]) {
         logs = res.logs
       });
 
-      it('reverts if sender is not owner', async function() {
-        await assertRevert(this.token.setSupplyController(otherAddress, {from: newSupplyController}));
+      it('reverts if sender is not owner or supplyController', async function() {
         await assertRevert(this.token.setSupplyController(otherAddress, {from: otherAddress}));
+      });
+
+      it('works if sender is supply controller', async function() {
+        await this.token.setSupplyController(otherAddress, {from: newSupplyController});
+        var currentSupplyController = await this.token.supplyController();
+        assert.equal(currentSupplyController, otherAddress);
       });
 
       it('enables new supply controller to increase and decrease supply', async function() {

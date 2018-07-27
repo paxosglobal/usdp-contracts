@@ -263,7 +263,8 @@ contract StablecoinImplementation is UpgradeabilityStorage {
      * @dev Sets a new supply controller address.
      * @param _newSupplyController The address allowed to burn/mint tokens to control supply.
      */
-    function setSupplyController(address _newSupplyController) public onlyOwner {
+    function setSupplyController(address _newSupplyController) public {
+        require(msg.sender == supplyController || msg.sender == owner, "only SupplyController or Owner");
         emit SupplyControllerSet(supplyController, _newSupplyController);
         supplyController = _newSupplyController;
     }
