@@ -164,6 +164,7 @@ contract StablecoinImplementation is UpgradeabilityStorage {
         uint256 _value
     )
     public
+    whenNotPaused
     returns (bool)
     {
         require(_to != address(0), "cannot transfer to address zero");
@@ -186,7 +187,7 @@ contract StablecoinImplementation is UpgradeabilityStorage {
      * @param _spender The address which will spend the funds.
      * @param _value The amount of tokens to be spent.
      */
-    function approve(address _spender, uint256 _value) public returns (bool) {
+    function approve(address _spender, uint256 _value) public whenNotPaused returns (bool) {
         allowed[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
         return true;

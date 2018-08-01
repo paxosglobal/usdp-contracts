@@ -6,6 +6,6 @@ module.exports = async function(deployer) {
 
   stablecoin = await deployer.deploy(Stablecoin);
   const proxy = await deployer.deploy(Proxy, Stablecoin.address);
-  proxiedStablecoin = await Stablecoin.at(proxy.address);
-  proxiedStablecoin.initialize();
+  const proxiedStablecoin = await Stablecoin.at(proxy.address);
+  await proxiedStablecoin.initialize();
 };

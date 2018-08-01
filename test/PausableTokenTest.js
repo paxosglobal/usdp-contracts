@@ -4,8 +4,8 @@ const Proxy = artifacts.require('../contracts/ERC20Proxy.sol');
 const assertRevert = require('./helpers/assertRevert');
 
 // Test that Stablecoin operates correctly as an Pausable token.
-contract('Pausable Stablecoin', function([_, owner, anotherAccount]) {
-  beforeEach(async function() {
+contract('Pausable Stablecoin', function ([_, owner, anotherAccount]) {
+  beforeEach(async function () {
     const stablecoin = await StablecoinMock.new();
     const proxy = await Proxy.new(stablecoin.address);
     const proxiedStablecoin = await StablecoinMock.at(proxy.address);
@@ -35,6 +35,13 @@ contract('Pausable Stablecoin', function([_, owner, anotherAccount]) {
     // emits a Pause event
     assert.equal(logs.length, 1);
     assert.equal(logs[0].event, 'Pause');
+  });
+
+  it('cannot approve/transferFrom in pause', async function () {
+    await this.token.approve(anotherAccount, amount, {from: owner});
+    const {logs} = await this.token.pause({from: owner});
+    await assertRevert(this.token.approve(anotherAccount, 2 * amount, {from: owner}));
+    await assertRevert(this.token.transferFrom(owner, anotherAccount, amount, {from: anotherAccount}));
   });
 
   it('should resume allowing normal process after pause is over', async function () {
