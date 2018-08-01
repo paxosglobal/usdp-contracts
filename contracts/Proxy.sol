@@ -1,11 +1,12 @@
 pragma solidity ^0.4.24;
+pragma experimental "v0.5.0";
 
 
 import "./UpgradeabilityStorage.sol";
 
 
 /**
- * @title ERC20Proxy
+ * @title Proxy
  * @dev This proxy contract looks at the address for the implementation
  * and forwards *all* calls to the implementation contract; there are
  * no external functions in this Proxy contract. This Proxy will
@@ -15,7 +16,7 @@ import "./UpgradeabilityStorage.sol";
  * this contract. All relevant the storage for the actual contract is eternally
  * in this Proxy contract and never in the implementation contract itself.
  */
-contract ERC20Proxy is UpgradeabilityStorage {
+contract Proxy is UpgradeabilityStorage {
     /**
      * @dev Contract constructor.
      * @param _impl Address of the initial implementation.

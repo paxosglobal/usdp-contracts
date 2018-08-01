@@ -1,5 +1,5 @@
 const Stablecoin = artifacts.require('../contracts/StablecoinImplementation.sol');
-const Proxy = artifacts.require('../contracts/ERC20Proxy.sol');
+const Proxy = artifacts.require('../contracts/Proxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
 const {inLogs} = require('./helpers/expectEvent');
@@ -155,6 +155,10 @@ contract('Stablecoin', function([owner, newSupplyController, otherAddress]) {
         await this.token.setSupplyController(otherAddress, {from: newSupplyController});
         var currentSupplyController = await this.token.supplyController();
         assert.equal(currentSupplyController, otherAddress);
+      });
+
+      it('reverts if newSupplyController is address zero', async function() {
+        await assertRevert(this.token.setSupplyController(null, {from: owner}));
       });
 
       it('enables new supply controller to increase and decrease supply', async function() {

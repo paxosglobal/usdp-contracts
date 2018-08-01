@@ -1,4 +1,5 @@
 pragma solidity ^0.4.24;
+pragma experimental "v0.5.0";
 
 
 import "./zeppelin/SafeMath.sol";
@@ -97,13 +98,12 @@ contract StablecoinImplementation is UpgradeabilityStorage {
      * this serves as the constructor for the proxy but compiles to the
      * memory model of the Implementation contract.
      */
-    function initialize() public returns (bool) {
+    function initialize() public {
         require(!initialized, "already initialized");
         initialized = true;
         owner = msg.sender;
         totalSupply_ = 0;
         supplyController = msg.sender;
-        return true;
     }
 
     /**
@@ -266,6 +266,7 @@ contract StablecoinImplementation is UpgradeabilityStorage {
      */
     function setSupplyController(address _newSupplyController) public {
         require(msg.sender == supplyController || msg.sender == owner, "only SupplyController or Owner");
+        require(_newSupplyController != address(0), "cannot set supply controller to address zero");
         emit SupplyControllerSet(supplyController, _newSupplyController);
         supplyController = _newSupplyController;
     }
