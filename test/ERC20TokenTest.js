@@ -1,15 +1,15 @@
 const StablecoinMock = artifacts.require('./mocks/StablecoinWithBalance.sol');
-const Proxy = artifacts.require('../contracts/Proxy.sol');
+const Proxy = artifacts.require('../contracts/zeppelin/AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
 
 // Test that Stablecoin operates correctly as an ERC20Basic token.
-contract('ERC20 Stablecoin', function([_, owner, recipient, anotherAccount]) {
+contract('ERC20 Stablecoin', function([_, admin, recipient, anotherAccount, owner]) {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
   beforeEach(async function () {
-    const stablecoin = await StablecoinMock.new();
-    const proxy = await Proxy.new(stablecoin.address);
+    const stablecoin = await StablecoinMock.new({from: owner});
+    const proxy = await Proxy.new(stablecoin.address, {from: admin});
     const proxiedStablecoin = await StablecoinMock.at(proxy.address);
     await proxiedStablecoin.initialize({from: owner});
     await proxiedStablecoin.initializeBalance(owner, 100);

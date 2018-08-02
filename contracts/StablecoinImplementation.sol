@@ -3,12 +3,11 @@ pragma experimental "v0.5.0";
 
 
 import "./zeppelin/SafeMath.sol";
-import "./UpgradeabilityStorage.sol";
 
 
 /**
  * @title Stablecoin
- * @dev this contract is a Pausable ERC20Basic token with Burn and Mint
+ * @dev this contract is a Pausable ERC20 token with Burn and Mint
  * controleld by a central SupplyController. By implementing PaxosImplementation
  * this contract also includes external methods for setting
  * a new implementation contract for the Proxy.
@@ -18,7 +17,7 @@ import "./UpgradeabilityStorage.sol";
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract StablecoinImplementation is UpgradeabilityStorage {
+contract StablecoinImplementation {
 
     /**
      * MATH
@@ -83,9 +82,6 @@ contract StablecoinImplementation is UpgradeabilityStorage {
         address indexed oldSupplyController,
         address indexed newSupplyController
     );
-
-    // UPGRADEABILITY EVENTS
-    event Upgraded(address implementation);
 
     /**
      * FUNCTIONALITY
@@ -304,26 +300,5 @@ contract StablecoinImplementation is UpgradeabilityStorage {
         emit SupplyDecreased(supplyController, _value);
         emit Transfer(supplyController, address(0), _value);
         return true;
-    }
-
-    /**
-     * UPGRADEABILITY FUNCTIONALITY
-     */
-
-    /**
-     * @dev Upgrade the backing implementation of the proxy.
-     * Only the owner can call this function.
-     * @param newImplementation Address of the new implementation.
-     */
-    function upgradeTo(address newImplementation) public onlyOwner {
-        _setImplementation(newImplementation);
-        emit Upgraded(newImplementation);
-    }
-
-    /**
-     * @return The address of the implementation.
-     */
-    function implementation() public view returns (address) {
-        return _implementation();
     }
 }

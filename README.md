@@ -19,14 +19,12 @@ The model for the single SupplyController is similar to the owner model.
 Finally, there is a delegation
 layer that delegates to an implementation layer but all the data storage is actually
 in the proxy layer since the implementation layer code is run in the proxy layer context.
-There are no public functions in the proxy layer and even the management of the
-implementation contract address is implemented only in the implementation contract.
+The proxy used here is AdminUpgradeabilityProxy from zeppelinos/zos-lib
 
 ## Delegation Process
 
-Create a new contract implementing `StablecoinImplementation` and `UpgradeabilityStorage`
-without changing those two contracts. Deploy the new contract and then set the
-new implementation by calling `upgradeTo` on the proxy. Be careful to test
+Deploy the new contract and then set the
+new implementation by calling `upgradeTo` or `upgradeToAndCall` on the proxy. Be careful to test
 that the new contracts memory model is consistent with the one already on the proxy.
 
 ## Contract Tests
