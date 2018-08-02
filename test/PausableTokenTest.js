@@ -1,17 +1,17 @@
-const StablecoinMock = artifacts.require('./mocks/StablecoinWithBalance.sol');
+const PAXMock = artifacts.require('./mocks/PAXWithBalance.sol');
 const Proxy = artifacts.require('../contracts/zeppelin/AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
 
-// Test that Stablecoin operates correctly as an Pausable token.
-contract('Pausable Stablecoin', function ([_, admin, anotherAccount, owner]) {
+// Test that PAX operates correctly as an Pausable token.
+contract('Pausable PAX', function ([_, admin, anotherAccount, owner]) {
   beforeEach(async function () {
-    const stablecoin = await StablecoinMock.new({from: owner});
-    const proxy = await Proxy.new(stablecoin.address, {from: admin});
-    const proxiedStablecoin = await StablecoinMock.at(proxy.address);
-    await proxiedStablecoin.initialize({from: owner});
-    await proxiedStablecoin.initializeBalance(owner, 100);
-    this.token = proxiedStablecoin;
+    const pax = await PAXMock.new({from: owner});
+    const proxy = await Proxy.new(pax.address, {from: admin});
+    const proxiedPAX = await PAXMock.at(proxy.address);
+    await proxiedPAX.initialize({from: owner});
+    await proxiedPAX.initializeBalance(owner, 100);
+    this.token = proxiedPAX;
   });
 
   const amount = 10;

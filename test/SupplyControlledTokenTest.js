@@ -1,4 +1,4 @@
-const Stablecoin = artifacts.require('../contracts/StablecoinImplementation.sol');
+const PAX = artifacts.require('../contracts/PAXImplementation.sol');
 const Proxy = artifacts.require('../contracts/zeppelin/AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
@@ -6,15 +6,15 @@ const {inLogs} = require('./helpers/expectEvent');
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
-// Tests that Stablecoin token supply control mechanisms operate correctly.
-contract('Stablecoin', function([_, admin, newSupplyController, otherAddress, owner]) {
+// Tests that PAX token supply control mechanisms operate correctly.
+contract('PAX', function([_, admin, newSupplyController, otherAddress, owner]) {
 
   beforeEach(async function() {
-    const stablecoin = await Stablecoin.new({from: owner});
-    const proxy = await Proxy.new(stablecoin.address, {from: admin});
-    const proxiedStablecoin = await Stablecoin.at(proxy.address);
-    await proxiedStablecoin.initialize({from: owner});
-    this.token = proxiedStablecoin;
+    const pax = await PAX.new({from: owner});
+    const proxy = await Proxy.new(pax.address, {from: admin});
+    const proxiedPAX = await PAX.at(proxy.address);
+    await proxiedPAX.initialize({from: owner});
+    this.token = proxiedPAX;
   });
 
   describe('as a supply-controlled token', function() {

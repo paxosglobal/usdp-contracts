@@ -6,7 +6,7 @@ import "./zeppelin/SafeMath.sol";
 
 
 /**
- * @title Stablecoin
+ * @title PAXImplementation
  * @dev this contract is a Pausable ERC20 token with Burn and Mint
  * controleld by a central SupplyController. By implementing PaxosImplementation
  * this contract also includes external methods for setting
@@ -17,7 +17,7 @@ import "./zeppelin/SafeMath.sol";
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract StablecoinImplementation {
+contract PAXImplementation {
 
     /**
      * MATH
@@ -35,8 +35,8 @@ contract StablecoinImplementation {
     // ERC20 BASIC DATA
     mapping(address => uint256) balances;
     uint256 totalSupply_;
-    string public constant name = "STAB"; // solium-disable-line uppercase
-    string public constant symbol = "STAB"; // solium-disable-line uppercase
+    string public constant name = "PAX"; // solium-disable-line uppercase
+    string public constant symbol = "PAX"; // solium-disable-line uppercase
     uint8 public constant decimals = 18; // solium-disable-line uppercase
 
     // ERC20 DATA

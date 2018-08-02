@@ -1,19 +1,19 @@
-const Stablecoin = artifacts.require('../contracts/StablecoinImplementation.sol');
+const PAX = artifacts.require('../contracts/PAXImplementation.sol');
 const Proxy = artifacts.require('../contracts/zeppelin/AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
-// Test that Stablecoin operates correctly as an Ownable token.
-contract('Ownable Stablecoin', function([_, admin, anotherAccount, anotherAccount2, owner]) {
+// Test that PAX operates correctly as an Ownable token.
+contract('Ownable PAX', function([_, admin, anotherAccount, anotherAccount2, owner]) {
   beforeEach(async function() {
-    const stablecoin = await Stablecoin.new({from: owner});
-    const proxy = await Proxy.new(stablecoin.address, {from: admin});
-    const proxiedStablecoin = await Stablecoin.at(proxy.address);
-    await proxiedStablecoin.initialize({from: owner});
-    this.token = proxiedStablecoin;
-    this.stablecoin = stablecoin;
+    const pax = await PAX.new({from: owner});
+    const proxy = await Proxy.new(pax.address, {from: admin});
+    const proxiedPAX = await PAX.at(proxy.address);
+    await proxiedPAX.initialize({from: owner});
+    this.token = proxiedPAX;
+    this.pax = pax;
   });
 
   describe('as an ownable', function () {
@@ -52,11 +52,11 @@ contract('Ownable Stablecoin', function([_, admin, anotherAccount, anotherAccoun
     });
 
     it('constructor initializes the implementation contract and pauses it to avoid misleading state there', async function() {
-      const isPaused = await this.stablecoin.paused();
+      const isPaused = await this.pax.paused();
       assert.equal(isPaused, true);
-      const currentOwner = this.stablecoin.owner();
+      const currentOwner = this.pax.owner();
       assert.notEqual(currentOwner, ZERO_ADDRESS);
-      await assertRevert(this.stablecoin.initialize());
+      await assertRevert(this.pax.initialize());
     });
   });
 });

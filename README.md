@@ -1,4 +1,4 @@
-# stablecoin
+# Paxos Standard (PAX)
 Paxos-issued USD-collateralized ERC20 stablecoin public smart contract repository.
 
 ## Contract Specification
@@ -7,7 +7,7 @@ TODO: Make this a full spec
 
 ### Quick Summary
 
-Stablecoin is an ERC20Basic token that is Centrally Minted and Burned by Paxos,
+Paxos Standard (PAX) is an ERC20 token that is Centrally Minted and Burned by Paxos,
 representing the trusted party backing the token with USD.
 
 It has a simple ownership model of one owner using OpenZeppelin's

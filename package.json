@@ -1,5 +1,5 @@
 {
-  "name": "stablecoin",
+  "name": "PAX",
   "version": "0.0.1",
   "description": "Paxos-issued USD-collateralized ERC20 stablecoin",
   "main": "truffle.js",
