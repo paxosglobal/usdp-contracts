@@ -1,6 +1,15 @@
 # Paxos Standard (PAX)
 Paxos-issued USD-collateralized ERC20 stablecoin public smart contract repository.
 
+The whitepaper can be found `<insert-link>`.
+
+## ABI, Address, and Verification
+
+The contract abi is in `PAX.abi`. It is the abi of the implementation contract.
+Interaction with PAX Standard is done at the address of the proxy at `TODO`. See
+`<etherscan-link>` for on-chain bytecode verification. 
+See also the security audit by Nomic Labs.
+
 ## Contract Specification
 
 Paxos Standard (PAX) is an ERC20 token that is Centrally Minted and Burned by Paxos,

@@ -25,6 +25,15 @@ compile:
 migrate:
 	@npm run migrate
 
+.PHONY:flatten
+flatten:
+	@npm run flatten-impl
+	@npm run flatten-proxy
+
+.PHONY:abi
+abi:
+	@npm run abi
+
 .PHONY:test-contracts
 test-contracts:
 	@npm test

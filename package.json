@@ -7,8 +7,11 @@
     "test": "test"
   },
   "scripts": {
+    "abi": "mkdir -p abi-out && solcjs --abi ./contracts/zeppelin/SafeMath.sol ./contracts/PAXImplementation.sol -o ./abi-out && cp ./abi-out/__contracts_PAXImplementation_sol_PAXImplementation.abi ./PAX.abi",
     "compile": "truffle compile",
     "coverage": "solidity-coverage",
+    "flatten-impl": "truffle-flattener ./contracts/PAXImplementation.sol > ./flattened/PAXImplementation.sol",
+    "flatten-proxy": "truffle-flattener ./contracts/zeppelin/AdminUpgradeabilityProxy.sol > ./flattened/AdminUpgradeabilityProxy.sol",
     "ganache": "ganache-cli",
     "migrate": "truffle migrate",
     "solium": "solium -d contracts/ --fix",
@@ -27,8 +30,10 @@
   "dependencies": {},
   "devDependencies": {
     "ganache-cli": "^6.1.2",
+    "solc": "^0.4.24",
     "solidity-coverage": "^0.5.4",
     "solium": "^1.1.8",
-    "truffle": "^4.1.11"
+    "truffle": "^4.1.11",
+    "truffle-flattener": "^1.2.6"
   }
 }
