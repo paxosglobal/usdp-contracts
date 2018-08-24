@@ -48,6 +48,10 @@ contract PAXImplementation {
     // PAUSABILITY DATA
     bool public paused = false;
 
+    // LAW ENFORCEMENT DATA
+    address public lawEnforcementRole;
+    mapping(address => bool) frozen;
+
     // SUPPLY CONTROL DATA
     address public supplyController;
 
@@ -75,6 +79,15 @@ contract PAXImplementation {
     event Pause();
     event Unpause();
 
+    // LAW ENFORCEMENT EVENTS
+    event AddressFrozen(address indexed addr);
+    event AddressUnfrozen(address indexed addr);
+    event FrozenAddressWiped(address indexed addr);
+    event LawEnforcementRoleSet (
+        address indexed oldLawEnforcementRole,
+        address indexed newLawEnforcementRole
+    );
+
     // SUPPLY CONTROL EVENTS
     event SupplyIncreased(address indexed to, uint256 value);
     event SupplyDecreased(address indexed from, uint256 value);
@@ -98,6 +111,7 @@ contract PAXImplementation {
         require(!initialized, "already initialized");
         initialized = true;
         owner = msg.sender;
+        lawEnforcementRole = address(0);
         totalSupply_ = 0;
         supplyController = msg.sender;
     }
@@ -129,6 +143,7 @@ contract PAXImplementation {
     */
     function transfer(address _to, uint256 _value) public whenNotPaused returns (bool) {
         require(_to != address(0), "cannot transfer to address zero");
+        require(!frozen[_to] && !frozen[msg.sender], "address frozen");
         require(_value <= balances[msg.sender], "insufficient funds");
 
         balances[msg.sender] = balances[msg.sender].sub(_value);
@@ -164,6 +179,7 @@ contract PAXImplementation {
     returns (bool)
     {
         require(_to != address(0), "cannot transfer to address zero");
+        require(!frozen[_to] && !frozen[_from] && !frozen[msg.sender], "address frozen");
         require(_value <= balances[_from], "insufficient funds");
         require(_value <= allowed[_from][msg.sender], "insufficient allowance");
 
@@ -184,6 +200,7 @@ contract PAXImplementation {
      * @param _value The amount of tokens to be spent.
      */
     function approve(address _spender, uint256 _value) public whenNotPaused returns (bool) {
+        require(!frozen[_spender] && !frozen[msg.sender], "address frozen");
         allowed[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
         return true;
@@ -252,6 +269,67 @@ contract PAXImplementation {
         require(paused, "already unpaused");
         paused = false;
         emit Unpause();
+    }
+
+    // LAW ENFORCEMENT FUNCTIONALITY
+
+    /**
+     * @dev Sets a new law enforcement role address.
+     * @param _newLawEnforcementRole The new address allowed to freeze/unfreeze addresses and seize their tokens.
+     */
+    function setLawEnforcementRole(address _newLawEnforcementRole) public {
+        require(msg.sender == lawEnforcementRole || msg.sender == owner, "only lawEnforcementRole or Owner");
+        emit LawEnforcementRoleSet(lawEnforcementRole, _newLawEnforcementRole);
+        lawEnforcementRole = _newLawEnforcementRole;
+    }
+
+    modifier onlyLawEnforcementRole() {
+        require(msg.sender == lawEnforcementRole, "onlyLawEnforcementRole");
+        _;
+    }
+
+    /**
+     * @dev Freezes an address balance from being transferred.
+     * @param _addr The new address to freeze.
+     */
+    function freeze(address _addr) public onlyLawEnforcementRole {
+        require(!frozen[_addr], "address already frozen");
+        frozen[_addr] = true;
+        emit AddressFrozen(_addr);
+    }
+
+    /**
+     * @dev Unfreezes an address balance allowing transfer.
+     * @param _addr The new address to unfreeze.
+     */
+    function unfreeze(address _addr) public onlyLawEnforcementRole {
+        require(frozen[_addr], "address already unfrozen");
+        frozen[_addr] = false;
+        emit AddressUnfrozen(_addr);
+    }
+
+    /**
+     * @dev Wipes the balance of a frozen address, burning the tokens
+     * and setting the approval to zero.
+     * @param _addr The new frozen address to wipe.
+     */
+    function wipeFrozenAddress(address _addr) public onlyLawEnforcementRole {
+        require(frozen[_addr], "address is not frozen");
+        uint256 _balance = balances[_addr];
+        balances[_addr] = 0;
+        totalSupply_ = totalSupply_.sub(_balance);
+        emit FrozenAddressWiped(_addr);
+        emit SupplyDecreased(_addr, _balance);
+        emit Transfer(_addr, address(0), _balance);
+    }
+
+    /**
+    * @dev Gets the balance of the specified address.
+    * @param _addr The address to check if frozen.
+    * @return A bool representing whether the given address is frozen.
+    */
+    function isFrozen(address _addr) public view returns (bool) {
+        return frozen[_addr];
     }
 
     // SUPPLY CONTROL FUNCTIONALITY

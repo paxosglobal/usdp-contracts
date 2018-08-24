@@ -1,6 +1,8 @@
 node_modules/
+build/
+abi-out/
 coverage/
 coverage.json
 coverageEnv/
-build/
-abi-out/
+scTopics
+allFiredEvents

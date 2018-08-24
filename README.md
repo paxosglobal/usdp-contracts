@@ -67,6 +67,18 @@ and approvals of the PAX token. The ability to pause is controlled by a single `
 The simple model for pausing transfers following OpenZeppelin's
 [Pausable](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/5daaf60d11ee2075260d0f3adfb22b1c536db983/contracts/lifecycle/Pausable.sol).
 
+### Law Enforcement Role
+
+As required by our regulators, we have introduced a role for law enforcement
+in case of the event of a subpoena to freeze or seize the assets of a criminal party.
+The `lawEnforcementRole` can freeze and unfreeze the PAX balance of any address on chain.
+It can also wipe the balance of an address after it is frozen
+to allow the appropriate authorities to seize the backing assets. 
+
+Freezing is something that Paxos will not do on its own accord,
+and as such we expect to happen extremly rarely. The list of frozen addresses is avaialable
+in `isFrozen(address who)`.
+
 ### Upgradeability Proxy
 
 To facilitate upgradeability on the immutable blockchian we follow a standard
