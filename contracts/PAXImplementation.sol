@@ -109,11 +109,11 @@ contract PAXImplementation {
      */
     function initialize() public {
         require(!initialized, "already initialized");
-        initialized = true;
         owner = msg.sender;
         lawEnforcementRole = address(0);
         totalSupply_ = 0;
         supplyController = msg.sender;
+        initialized = true;
     }
 
     /**
