@@ -3,3 +3,4 @@ contracts/Migrations.sol
 contracts/zeppelin/Proxy.sol
 contracts/zeppelin/UpgradeabilityProxy.sol
 contracts/zeppelin/AdminUpgradeabilityProxy.sol
+contracts/zeppelin/SafeMath.sol

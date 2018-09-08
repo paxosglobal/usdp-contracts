@@ -8,19 +8,22 @@ pragma solidity ^0.4.24;
  */
 library SafeMath {
     /**
-    * @dev Subtracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
+    * @dev Subtracts two numbers, reverts on overflow (i.e. if subtrahend is greater than minuend).
     */
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        assert(b <= a);
-        return a - b;
+        require(b <= a);
+        uint256 c = a - b;
+
+        return c;
     }
 
     /**
-    * @dev Adds two numbers, throws on overflow.
+    * @dev Adds two numbers, reverts on overflow.
     */
-    function add(uint256 a, uint256 b) internal pure returns (uint256 c) {
-        c = a + b;
-        assert(c >= a);
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+        require(c >= a);
+
         return c;
     }
 }
@@ -59,8 +62,8 @@ contract PAXImplementation {
     bool private initialized = false;
 
     // ERC20 BASIC DATA
-    mapping(address => uint256) balances;
-    uint256 totalSupply_;
+    mapping(address => uint256) internal balances;
+    uint256 internal totalSupply_;
     string public constant name = "PAX"; // solium-disable-line uppercase
     string public constant symbol = "PAX"; // solium-disable-line uppercase
     uint8 public constant decimals = 18; // solium-disable-line uppercase
@@ -76,7 +79,7 @@ contract PAXImplementation {
 
     // LAW ENFORCEMENT DATA
     address public lawEnforcementRole;
-    mapping(address => bool) frozen;
+    mapping(address => bool) internal frozen;
 
     // SUPPLY CONTROL DATA
     address public supplyController;
@@ -135,11 +138,11 @@ contract PAXImplementation {
      */
     function initialize() public {
         require(!initialized, "already initialized");
-        initialized = true;
         owner = msg.sender;
         lawEnforcementRole = address(0);
         totalSupply_ = 0;
         supplyController = msg.sender;
+        initialized = true;
     }
 
     /**

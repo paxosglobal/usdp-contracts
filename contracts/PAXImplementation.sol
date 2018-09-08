@@ -33,8 +33,8 @@ contract PAXImplementation {
     bool private initialized = false;
 
     // ERC20 BASIC DATA
-    mapping(address => uint256) balances;
-    uint256 totalSupply_;
+    mapping(address => uint256) internal balances;
+    uint256 internal totalSupply_;
     string public constant name = "PAX"; // solium-disable-line uppercase
     string public constant symbol = "PAX"; // solium-disable-line uppercase
     uint8 public constant decimals = 18; // solium-disable-line uppercase
@@ -50,7 +50,7 @@ contract PAXImplementation {
 
     // LAW ENFORCEMENT DATA
     address public lawEnforcementRole;
-    mapping(address => bool) frozen;
+    mapping(address => bool) internal frozen;
 
     // SUPPLY CONTROL DATA
     address public supplyController;

@@ -2,7 +2,6 @@ const PAX = artifacts.require('../contracts/PAXImplementation.sol');
 const Proxy = artifacts.require('../contracts/zeppelin/AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
-const {inLogs} = require('./helpers/expectEvent');
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 

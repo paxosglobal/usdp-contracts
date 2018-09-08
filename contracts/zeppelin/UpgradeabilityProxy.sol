@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "./Proxy.sol";
-import "./AddressUtils.sol";
+import './Proxy.sol';
+import './AddressUtils.sol';
 
 /**
  * @title UpgradeabilityProxy

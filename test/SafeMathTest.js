@@ -1,7 +1,7 @@
 // It's hard to get full test coverage on SafeMath testing just the Stablecoin contract.
 // This is the openzeppelin-solidity test for add and sub as of the time of writing
 
-const assertJump = require('./helpers/assertJump');
+const assertRevert = require('./helpers/assertRevert');
 const BigNumber = web3.BigNumber;
 const SafeMathMock = artifacts.require('./mocks/SafeMathMock');
 
@@ -25,7 +25,7 @@ contract('SafeMath', () => {
       const a = MAX_UINT;
       const b = new BigNumber(1);
 
-      await assertJump(this.safeMath.add(a, b));
+      await assertRevert(this.safeMath.add(a, b));
     });
   });
 
@@ -42,7 +42,7 @@ contract('SafeMath', () => {
       const a = new BigNumber(1234);
       const b = new BigNumber(5678);
 
-      await assertJump(this.safeMath.sub(a, b));
+      await assertRevert(this.safeMath.sub(a, b));
     });
   });
 });

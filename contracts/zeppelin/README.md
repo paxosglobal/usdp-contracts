@@ -1,9 +1,9 @@
 This is the Open Zeppelin Readme to comply with their copyright
 while still checking in their code for readability.
 https://github.com/OpenZeppelin/openzeppelin-solidity
-commit: 5daaf60d11ee2075260d0f3adfb22b1c536db983
-https://github.com/zeppelinos/zos-lib/tree/master/contracts/upgradeability
-commit: a29d06c5766c026227f011c906abb0e99bdc2545
+commit: 6c4c8989b399510a66d8b98ad75a0979482436d2
+https://github.com/zeppelinos/zos/tree/master/packages/lib/contracts/upgradeability
+commit: bef4fc87789a851d0d4ad63295e472a4cb37de82
 
 The MIT License (MIT)
 
