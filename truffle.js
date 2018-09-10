@@ -1,3 +1,7 @@
+const mnemonic = "";
+const walletChildNum = 0;
+const networkAddress = "https://mainnet.infura.io/v3/<your-api-key>";
+
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   // to customize your Truffle configuration!
@@ -15,7 +19,13 @@ module.exports = {
       port: 8321,
       gas: 10000000000000,
       gasPrice: 0x01
-    }
+    },
+    mainnet: {
+      network_id: 1,
+      provider: function() {
+        return new HDWalletProvider(mnemonic, networkAddress, walletChildNum)
+      },
+    },
   },
   solc: {
     optimizer: {

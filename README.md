@@ -1,14 +1,16 @@
 # Paxos Standard (PAX)
 Paxos-issued USD-collateralized ERC20 stablecoin public smart contract repository.
 
-The whitepaper can be found `<insert-link>`.
+https://www.paxos.com/standard
+
+The whitepaper can be found [here](https://standard.paxos.com/whitepaper).
 
 ## ABI, Address, and Verification
 
 The contract abi is in `PAX.abi`. It is the abi of the implementation contract.
-Interaction with PAX Standard is done at the address of the proxy at `TODO`. See
-`<etherscan-link>` for on-chain bytecode verification. 
-See also the security audit by Nomic Labs.
+Interaction with PAX Standard is done at the address of the proxy at `0x8e870d67f660d95d5be530380d0ec0bd388289e1`. See
+https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1 for live on-chain details, and the section on bytecode verification below.
+See also the [security audit by Nomic Labs](https://medium.com/nomic-labs-blog/paxos-standard-pax-audit-report-ca743c9575dc).
 
 ## Contract Specification
 
@@ -101,6 +103,19 @@ where the latter is used for upgrades requiring a new initialization or data mig
 it can all be done in one transaction. You must first deploy a copy of the new implementation
 contract, which is automatically paused by its constructor to help avoid accidental calls directly
 to the proxy contract.
+
+## Bytecode verification
+
+The proxy contract and impelemtnation contracts are verified on etherscan at the following links:
+https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1
+https://etherscan.io/token/0x6ffcb0f00c3ad2575e443152d8861aec1bda9ce6
+
+Because the implementation address in the proxy is a private variable, 
+verifying that this is the proxy being used requires reading contract
+storage directly. This can be done using a mainnet node, such as infura,
+by pasting the network address in `truffle.js` and running 
+
+`truffle exec ./getImplementationAddress.js --network mainnet`
 
 ## Contract Tests
 
