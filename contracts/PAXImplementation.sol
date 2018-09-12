@@ -370,9 +370,6 @@ contract PAXImplementation {
      */
     function decreaseSupply(uint256 _value) public onlySupplyController returns (bool success) {
         require(_value <= balances[supplyController], "not enough supply");
-        // no need to require value <= totalSupply, since that would imply the
-        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
-
         balances[supplyController] = balances[supplyController].sub(_value);
         totalSupply_ = totalSupply_.sub(_value);
         emit SupplyDecreased(supplyController, _value);
