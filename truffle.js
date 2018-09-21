@@ -1,3 +1,4 @@
+var HDWalletProvider = require("truffle-hdwallet-provider");
 const mnemonic = "";
 const walletChildNum = 0;
 const networkAddress = "https://mainnet.infura.io/v3/<your-api-key>";
