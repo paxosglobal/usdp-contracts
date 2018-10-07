@@ -1,5 +1,5 @@
 .PHONY:all
-all: test
+all: test-contracts
 
 .PHONY:clean
 clean:

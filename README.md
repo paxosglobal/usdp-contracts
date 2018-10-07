@@ -84,7 +84,7 @@ in `isFrozen(address who)`.
 
 ### Upgradeability Proxy
 
-To facilitate upgradeability on the immutable blockchian we follow a standard
+To facilitate upgradeability on the immutable blockchain we follow a standard
 two-contract delegation pattern: a proxy contract represents the token,
 while all calls not involving upgrading the contract are delegated to an 
 implementation contract. 
@@ -107,7 +107,7 @@ to the proxy contract.
 
 ## Bytecode verification
 
-The proxy contract and impelemtnation contracts are verified on etherscan at the following links:
+The proxy contract and implementation contracts are verified on etherscan at the following links:
 https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1
 https://etherscan.io/token/0x6ffcb0f00c3ad2575e443152d8861aec1bda9ce6
 

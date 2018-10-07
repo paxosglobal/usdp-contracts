@@ -19,14 +19,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/paxos-bankchain/stablecoin-contracts.git"
+    "url": "git+https://github.com/paxosglobal/pax-contracts.git"
   },
   "author": "PAXOS",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/paxos-bankchain/stablecoin-contracts/issues"
+    "url": "https://github.com/paxosglobal/pax-contracts/issues"
   },
-  "homepage": "https://github.com/paxos-bankchain/stablecoin-contracts#readme",
+  "homepage": "https://github.com/paxosglobal/pax-contracts#readme",
   "dependencies": {},
   "devDependencies": {
     "ganache-cli": "^6.1.2",
