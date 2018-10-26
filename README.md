@@ -11,7 +11,7 @@ The contract abi is in `PAX.abi`. It is the abi of the implementation contract.
 Interaction with PAX Standard is done at the address of the proxy at `0x8e870d67f660d95d5be530380d0ec0bd388289e1`. See
 https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1 for live on-chain details, and the section on bytecode verification below.
 See also our independent security audits by [Nomic Labs](https://medium.com/nomic-labs-blog/paxos-standard-pax-audit-report-ca743c9575dc), [ChainSecurity](https://medium.com/chainsecurity/paxos-standard-audit-completed-2e9a0064e8bb),
-and [Trail of Bits](https://github.com/paxosglobal/pax-contracts/blob/master/audits-reports/Trail_of_Bits_Audit_Report.pdf).
+and [Trail of Bits](https://github.com/paxosglobal/pax-contracts/blob/master/audit-reports/Trail_of_Bits_Audit_Report.pdf).
 
 ## Contract Specification
 
