@@ -11,7 +11,7 @@ The contract abi is in `PAX.abi`. It is the abi of the implementation contract.
 Interaction with PAX Standard is done at the address of the proxy at `0x8e870d67f660d95d5be530380d0ec0bd388289e1`. See
 https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1 for live on-chain details, and the section on bytecode verification below.
 See also our independent security audits by [Nomic Labs](https://medium.com/nomic-labs-blog/paxos-standard-pax-audit-report-ca743c9575dc), [ChainSecurity](https://medium.com/chainsecurity/paxos-standard-audit-completed-2e9a0064e8bb),
-and [Trail of Bits](https://github.com/paxosglobal/pax-contracts/blob/master/audit-reports/Trail_of_Bits_Audit_Report.pdf).
+and [Trail of Bits](https://github.com/trailofbits/publications/blob/master/reviews/paxos.pdf).
 
 ## Contract Specification
 
@@ -41,7 +41,22 @@ And the usual events.
 Typical interaction with the contract will use `transfer` to move the token as payment.
 Additionally, a pattern involving `approve` and `transferFrom` can be used to allow another 
 address to move tokens from your address to a third party without the need for the middleperson 
-to custody the tokens, such as in the 0x protocol.
+to custody the tokens, such as in the 0x protocol. 
+
+#### Warning about ERC20 approve front-running
+
+There is a well known gotcha involving the ERC20 `approve` method. The problem occurs when the owner decides
+to change the allowance of a spender that already has an allowance. If the spender sends a `transferFrom` 
+transaction at a similar time that the owner sends the new `approve` transaction
+and the `transferFrom` by the spender goes through first, then the spender gets to use the 
+original allowance, and also get approved for the intended new allowance.
+
+The recommended mitigation in cases where the owner does not trust the spender is to
+first set the allowance to zero before setting it to a new amount, checking that the 
+allowance was not spent before sending the new approval transaction. Note, however, that any 
+allowance change is subject to front-running, which is as simple as watching the 
+mempool for certain transactions and then offering a higher gas price to get another 
+transaction mined onto the blockchain more quickly.
 
 ### Controlling the token supply
 
