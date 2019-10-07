@@ -1,7 +1,8 @@
 var HDWalletProvider = require("truffle-hdwallet-provider");
-const mnemonic = "";
+const mnemonic = "<your-mnemonic>"
 const walletChildNum = 0;
-const networkAddress = "https://mainnet.infura.io/v3/<your-api-key>";
+const networkAddressMainnet = "https://mainnet.infura.io/v3/<your-api-key>";
+const networkAddressTestnet = "https://ropsten.infura.io/v3/<your-api-key>"
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -24,14 +25,26 @@ module.exports = {
     mainnet: {
       network_id: 1,
       provider: function() {
-        return new HDWalletProvider(mnemonic, networkAddress, walletChildNum)
+        return new HDWalletProvider(mnemonic, networkAddressMainnet, walletChildNum)
       },
     },
+    ropsten: {
+      provider: function() {
+        return new HDWalletProvider(mnemonic, networkAddressTestnet, walletChildNum)
+      },
+      network_id: 3,
+      gas: 4000000
+    }
   },
   solc: {
     optimizer: {
       enabled: true,
-      runs: 200
+      runs: 200,
+    },
+  },
+  compilers: {
+    solc: {
+      version: "v0.4.24+commit.e67f0147" // Freeze solidity version 
     }
   }
 };
