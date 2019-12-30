@@ -70,7 +70,7 @@ contract('PAX', function([_, admin, lawEnforcementRole, otherAddress, freezableA
           await this.token.approve(otherAddress, approvalAmount, {from: freezableAddress});
 
           // approve freezableAddress address to take some of those tokens from otherAddress
-          await this.token.approve(otherAddress, approvalAmount, {from: freezableAddress});
+          await this.token.approve(freezableAddress, approvalAmount, {from: otherAddress});
 
           // freeze freezableAddress
           await this.token.freeze(freezableAddress, {from: lawEnforcementRole});
