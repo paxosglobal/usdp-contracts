@@ -31,7 +31,7 @@
   "devDependencies": {
     "ganache-cli": "^6.1.2",
     "solc": "^0.4.24",
-    "solidity-coverage": "^0.5.4",
+    "solidity-coverage": "^0.5.16",
     "solium": "^1.1.8",
     "truffle": "^4.1.11",
     "truffle-flattener": "^1.2.6",
