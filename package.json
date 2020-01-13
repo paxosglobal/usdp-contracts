@@ -32,7 +32,7 @@
     "ganache-cli": "^6.1.2",
     "solc": "^0.4.24",
     "solidity-coverage": "^0.5.4",
-    "solium": "^1.1.8",
+    "solium": "^1.2.5",
     "truffle": "^4.1.11",
     "truffle-flattener": "^1.2.6",
     "truffle-hdwallet-provider": "0.0.5"
