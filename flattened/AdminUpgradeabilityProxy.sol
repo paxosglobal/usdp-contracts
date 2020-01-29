@@ -1,6 +1,7 @@
-pragma solidity ^0.4.24;
 
 // File: contracts/zeppelin/Proxy.sol
+
+pragma solidity ^0.4.24;
 
 /**
  * @title Proxy
@@ -70,6 +71,9 @@ contract Proxy {
 
 // File: contracts/zeppelin/AddressUtils.sol
 
+pragma solidity ^0.4.24;
+
+
 /**
  * Utility library of inline functions on addresses
  */
@@ -98,6 +102,10 @@ library AddressUtils {
 }
 
 // File: contracts/zeppelin/UpgradeabilityProxy.sol
+
+pragma solidity ^0.4.24;
+
+
 
 /**
  * @title UpgradeabilityProxy
@@ -165,6 +173,9 @@ contract UpgradeabilityProxy is Proxy {
 }
 
 // File: contracts/zeppelin/AdminUpgradeabilityProxy.sol
+
+pragma solidity ^0.4.24;
+
 
 /**
  * @title AdminUpgradeabilityProxy

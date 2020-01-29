@@ -1,9 +1,9 @@
-const PAXMock = artifacts.require('./mocks/PAXWithBalance.sol');
-const Proxy = artifacts.require('../contracts/zeppelin/AdminUpgradeabilityProxy.sol');
+const PAXMock = artifacts.require('PAXWithBalance.sol');
+const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
 
-// Test that PAX operates correctly as an Pausable token.
+// Test that PAX operates correctly as a Pausable token.
 contract('Pausable PAX', function ([_, admin, anotherAccount, owner]) {
   beforeEach(async function () {
     const pax = await PAXMock.new({from: owner});

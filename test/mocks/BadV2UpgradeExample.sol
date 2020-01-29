@@ -2,13 +2,13 @@ pragma solidity ^0.4.24;
 pragma experimental "v0.5.0";
 
 
-import "./zeppelin/SafeMath.sol";
+import "../../contracts/zeppelin/SafeMath.sol";
 
 
 /**
- * @title PAXImplementation
+ * @title PAXImplementationV2
  * @dev this contract is a Pausable ERC20 token with Burn and Mint
- * controleld by a central SupplyController. By implementing PaxosImplementation
+ * controlled by a central SupplyController. By implementing PaxosImplementation
  * this contract also includes external methods for setting
  * a new implementation contract for the Proxy.
  * NOTE: The storage defined here will actually be held in the Proxy
@@ -17,7 +17,7 @@ import "./zeppelin/SafeMath.sol";
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract PAXImplementation {
+contract BadV2UpgradeExample {
 
     /**
      * MATH
@@ -29,18 +29,35 @@ contract PAXImplementation {
      * DATA
      */
 
+    // BadV2UpgradeExample: What's different here is that the new storage is at the beginning!
+
+    // DELEGATED TRANSFER DATA
+    mapping(address => uint256) internal nextSeqs;
+    // EIP191 header for EIP712 prefix
+    string constant internal EIP191_HEADER = "\x19\x01";
+    // Hash of the EIP712 Domain Separator Schema
+    bytes32 constant internal EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH = keccak256(
+        "EIP712Domain(string name,address verifyingContract)"
+    );
+    bytes32 constant internal EIP712_DELEGATED_TRANSFER_SCHEMA_HASH = keccak256(
+        "DelegatedTransfer(address to,uint256 value,uint256 fee,uint256 seq,uint256 deadline)"
+    );
+    // Hash of the EIP712 Domain Separator data
+    // solhint-disable-next-line var-name-mixedcase
+    bytes32 public EIP712_DOMAIN_HASH;
+
     // INITIALIZATION DATA
     bool private initialized = false;
 
     // ERC20 BASIC DATA
     mapping(address => uint256) internal balances;
     uint256 internal totalSupply_;
-    string public constant name = "PAX"; // solium-disable-line uppercase
+    string public constant name = "Paxos Standard"; // solium-disable-line
     string public constant symbol = "PAX"; // solium-disable-line uppercase
     uint8 public constant decimals = 18; // solium-disable-line uppercase
 
     // ERC20 DATA
-    mapping (address => mapping (address => uint256)) internal allowed;
+    mapping(address => mapping(address => uint256)) internal allowed;
 
     // OWNER DATA
     address public owner;
@@ -48,8 +65,8 @@ contract PAXImplementation {
     // PAUSABILITY DATA
     bool public paused = false;
 
-    // LAW ENFORCEMENT DATA
-    address public lawEnforcementRole;
+    // ASSET PROTECTION DATA
+    address public assetProtectionRole;
     mapping(address => bool) internal frozen;
 
     // SUPPLY CONTROL DATA
@@ -79,13 +96,13 @@ contract PAXImplementation {
     event Pause();
     event Unpause();
 
-    // LAW ENFORCEMENT EVENTS
+    // ASSET PROTECTION EVENTS
     event AddressFrozen(address indexed addr);
     event AddressUnfrozen(address indexed addr);
     event FrozenAddressWiped(address indexed addr);
-    event LawEnforcementRoleSet (
-        address indexed oldLawEnforcementRole,
-        address indexed newLawEnforcementRole
+    event AssetProtectionRoleSet (
+        address indexed oldAssetProtectionRole,
+        address indexed newAssetProtectionRole
     );
 
     // SUPPLY CONTROL EVENTS
@@ -94,6 +111,11 @@ contract PAXImplementation {
     event SupplyControllerSet(
         address indexed oldSupplyController,
         address indexed newSupplyController
+    );
+
+    // DELEGATED TRANSFER EVENTS
+    event DelegatedTransfer(
+        address indexed from, address indexed to, uint256 value, uint256 seq, uint256 fee
     );
 
     /**
@@ -110,7 +132,7 @@ contract PAXImplementation {
     function initialize() public {
         require(!initialized, "already initialized");
         owner = msg.sender;
-        lawEnforcementRole = address(0);
+        assetProtectionRole = address(0);
         totalSupply_ = 0;
         supplyController = msg.sender;
         initialized = true;
@@ -125,6 +147,20 @@ contract PAXImplementation {
     constructor() public {
         initialize();
         pause();
+        // Added in V2
+        initializeDomainSeparator();
+    }
+
+    /**
+     * @dev To be called when upgrading the contract using upgradeAndCall to add delegated transfers
+     */
+    function initializeDomainSeparator() public {
+        // hash the name context with the contract address
+        EIP712_DOMAIN_HASH = keccak256(abi.encodePacked(// solium-disable-line
+                EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH,
+                keccak256(bytes(name)),
+                bytes32(address(this))
+            ));
     }
 
     // ERC20 BASIC FUNCTIONALITY
@@ -137,7 +173,8 @@ contract PAXImplementation {
     }
 
     /**
-    * @dev Transfer token for a specified address
+    * @dev Transfer token to a specified address from msg.sender
+    * Note: the use of Safemath ensures that _value is nonnegative.
     * @param _to The address to transfer to.
     * @param _value The amount to be transferred.
     */
@@ -243,6 +280,18 @@ contract PAXImplementation {
         owner = _newOwner;
     }
 
+    /**
+     * @dev Reclaim all PAX at the contract address.
+     * This sends the PAX tokens that this contract add holding to the owner.
+     * Note: this is not affected by freeze constraints.
+     */
+    function reclaimPAX() external onlyOwner {
+        uint256 _balance = balances[this];
+        balances[this] = 0;
+        balances[owner] = balances[owner].add(_balance);
+        emit Transfer(this, owner, _balance);
+    }
+
     // PAUSABILITY FUNCTIONALITY
 
     /**
@@ -271,20 +320,20 @@ contract PAXImplementation {
         emit Unpause();
     }
 
-    // LAW ENFORCEMENT FUNCTIONALITY
+    // ASSET PROTECTION FUNCTIONALITY
 
     /**
-     * @dev Sets a new law enforcement role address.
-     * @param _newLawEnforcementRole The new address allowed to freeze/unfreeze addresses and seize their tokens.
+     * @dev Sets a new asset protection role address.
+     * @param _newAssetProtectionRole The new address allowed to freeze/unfreeze addresses and seize their tokens.
      */
-    function setLawEnforcementRole(address _newLawEnforcementRole) public {
-        require(msg.sender == lawEnforcementRole || msg.sender == owner, "only lawEnforcementRole or Owner");
-        emit LawEnforcementRoleSet(lawEnforcementRole, _newLawEnforcementRole);
-        lawEnforcementRole = _newLawEnforcementRole;
+    function setAssetProtectionRole(address _newAssetProtectionRole) public {
+        require(msg.sender == assetProtectionRole || msg.sender == owner, "only assetProtectionRole or Owner");
+        emit AssetProtectionRoleSet(assetProtectionRole, _newAssetProtectionRole);
+        assetProtectionRole = _newAssetProtectionRole;
     }
 
-    modifier onlyLawEnforcementRole() {
-        require(msg.sender == lawEnforcementRole, "onlyLawEnforcementRole");
+    modifier onlyAssetProtectionRole() {
+        require(msg.sender == assetProtectionRole, "onlyAssetProtectionRole");
         _;
     }
 
@@ -292,7 +341,7 @@ contract PAXImplementation {
      * @dev Freezes an address balance from being transferred.
      * @param _addr The new address to freeze.
      */
-    function freeze(address _addr) public onlyLawEnforcementRole {
+    function freeze(address _addr) public onlyAssetProtectionRole {
         require(!frozen[_addr], "address already frozen");
         frozen[_addr] = true;
         emit AddressFrozen(_addr);
@@ -302,7 +351,7 @@ contract PAXImplementation {
      * @dev Unfreezes an address balance allowing transfer.
      * @param _addr The new address to unfreeze.
      */
-    function unfreeze(address _addr) public onlyLawEnforcementRole {
+    function unfreeze(address _addr) public onlyAssetProtectionRole {
         require(frozen[_addr], "address already unfrozen");
         frozen[_addr] = false;
         emit AddressUnfrozen(_addr);
@@ -313,7 +362,7 @@ contract PAXImplementation {
      * and setting the approval to zero.
      * @param _addr The new frozen address to wipe.
      */
-    function wipeFrozenAddress(address _addr) public onlyLawEnforcementRole {
+    function wipeFrozenAddress(address _addr) public onlyAssetProtectionRole {
         require(frozen[_addr], "address is not frozen");
         uint256 _balance = balances[_addr];
         balances[_addr] = 0;
@@ -374,6 +423,72 @@ contract PAXImplementation {
         totalSupply_ = totalSupply_.sub(_value);
         emit SupplyDecreased(supplyController, _value);
         emit Transfer(supplyController, address(0), _value);
+        return true;
+    }
+
+    // DELEGATED TRANSFER FUNCTIONALITY
+
+    /**
+     * @dev returns the next seq for a target address.
+     * The transactor must submit nextSeqOf(transactor) in the next transaction for it to be valid.
+     * Note: that the seq context is specific to this smart contract.
+     * @param target The target address.
+     * @return the seq.
+     */
+    //
+    function nextSeqOf(address target) public view returns (uint256) {
+        return nextSeqs[target];
+    }
+
+    /**
+     * @dev Performs a transfer on behalf of the from address, identified by its signature on the delegatedTransfer msg
+     * Note: both the executor and transactor sign in the fees. The transactor, however,
+     * has no control over the gas price, and therefore no control over the transaction time.
+     * @param sig the signature of the delgatedTransfer msg
+     * @param to The address to transfer to.
+     * @param value The amount to be transferred.
+     * @param fee an optional ERC20 fee paid to the executor of delegatedTransfer by the from address
+     * @param seq a sequencing number included by the from address specific to this contract to protect from replays.
+     * @param deadline a block number after which the pre-signed transaction has expired
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function delegatedTransfer(
+        bytes sig, address to, uint256 value, uint256 fee, uint256 seq, uint256 deadline
+    ) public whenNotPaused returns (bool) {
+        require(sig.length == 65, "signature should have length 65");
+        require(value > 0, "cannot transfer zero tokens");
+        require(block.number <= deadline, "transaction expired");
+
+        // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
+        bytes32 delegatedTransferHash = keccak256(abi.encodePacked(// solium-disable-line
+                EIP712_DELEGATED_TRANSFER_SCHEMA_HASH, bytes32(to), value, fee, seq, deadline
+            ));
+        bytes32 hash = keccak256(abi.encodePacked(EIP191_HEADER, EIP712_DOMAIN_HASH, delegatedTransferHash));
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := mload(add(sig, 32))
+            s := mload(add(sig, 64))
+            v := byte(0, mload(add(sig, 96)))
+        }
+        address from = ecrecover(hash, v, r, s);
+
+        require(from != address(0) && to != address(0), "cannot use address zero");
+        require(!frozen[to] && !frozen[from] && !frozen[msg.sender], "address frozen");
+        require(value+fee <= balances[from], "insufficient funds");
+        require(nextSeqs[from] == seq, "incorrect seq");
+
+        nextSeqs[from] = nextSeqs[from] + 1;
+        balances[from] = balances[from].sub(value + fee);
+        if (fee != 0) {
+            balances[msg.sender] = balances[msg.sender].add(fee);
+            emit Transfer(from, msg.sender, fee);
+        }
+        balances[to] = balances[to].add(value);
+        emit Transfer(from, to, value);
+
+        emit DelegatedTransfer(from, to, value, seq, fee);
         return true;
     }
 }

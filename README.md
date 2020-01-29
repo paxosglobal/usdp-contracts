@@ -85,17 +85,32 @@ and approvals of the PAX token. The ability to pause is controlled by a single `
 The simple model for pausing transfers following OpenZeppelin's
 [Pausable](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/5daaf60d11ee2075260d0f3adfb22b1c536db983/contracts/lifecycle/Pausable.sol).
 
-### Law Enforcement Role
+### Asset Protection Role
 
-As required by our regulators, we have introduced a role for law enforcement to freeze or seize the assets of a criminal party when required to do so by law, including by court order or other legal process.
+As required by our regulators, we have introduced a role for asset protection to freeze or seize the assets of a criminal party when required to do so by law, including by court order or other legal process.
 
-The `lawEnforcementRole` can freeze and unfreeze the PAX balance of any address on chain.
+The `assetProtectionRole` can freeze and unfreeze the PAX balance of any address on chain.
 It can also wipe the balance of an address after it is frozen
 to allow the appropriate authorities to seize the backing assets. 
 
 Freezing is something that Paxos will not do on its own accord,
 and as such we expect to happen extremely rarely. The list of frozen addresses is available
 in `isFrozen(address who)`.
+
+### BetaDelegateTransfer
+
+  In order to allow for gas-less transactions we have implemented a variation of [EIP-865](https://github.com/ethereum/EIPs/issues/865).
+ The public function betaDelegatedTransfer and betaDelegatedTransferBatch allow an approved party to transfer BUSD
+ on the end user's behalf given a signed message from said user. Because EIP-865 is not finalized,
+ all methods related to delegated transfers are prefixed by Beta. Only approved parties are allowed to transfer
+ BUSD on a user's behalf because of potential attacks associated with signing messages.
+ To mitigate some attacks, [EIP-712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)
+ is implemented which provides a structured message to be displayed for verification when signing.
+ ```
+ function betaDelegatedTransfer(
+    bytes sig, address to, uint256 value, uint256 fee, uint256 seq, uint256 deadline
+ ) public returns (bool) {
+ ```
 
 ### Upgradeability Proxy
 
@@ -129,7 +144,7 @@ https://etherscan.io/token/0x6ffcb0f00c3ad2575e443152d8861aec1bda9ce6
 Because the implementation address in the proxy is a private variable, 
 verifying that this is the proxy being used requires reading contract
 storage directly. This can be done using a mainnet node, such as infura,
-by pasting the network address in `truffle.js` and running 
+by pasting the network address in `truffle-config.js` and running 
 
 `truffle exec ./getImplementationAddress.js --network mainnet`
 

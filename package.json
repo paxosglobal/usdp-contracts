@@ -1,5 +1,5 @@
 {
-  "name": "PAX",
+  "name": "pax",
   "version": "0.0.1",
   "description": "Paxos-issued USD-collateralized ERC20 stablecoin",
   "main": "truffle.js",
@@ -7,10 +7,10 @@
     "test": "test"
   },
   "scripts": {
-    "abi": "mkdir -p abi-out && solcjs --abi ./contracts/zeppelin/SafeMath.sol ./contracts/PAXImplementation.sol -o ./abi-out && cp ./abi-out/__contracts_PAXImplementation_sol_PAXImplementation.abi ./PAX.abi",
+    "abi": "mkdir -p abi-out && solcjs --abi ./contracts/zeppelin/SafeMath.sol ./contracts/PAXImplementationV2.sol -o ./abi-out && cp ./abi-out/__contracts_PAXImplementationV2_sol_PAXImplementationV2.abi ./PAX.abi",
     "compile": "truffle compile",
     "coverage": "solidity-coverage",
-    "flatten-impl": "truffle-flattener ./contracts/PAXImplementation.sol > ./flattened/PAXImplementation.sol",
+    "flatten-impl": "truffle-flattener ./contracts/PAXImplementationV2.sol > ./flattened/PAXImplementationV2.sol",
     "flatten-proxy": "truffle-flattener ./contracts/zeppelin/AdminUpgradeabilityProxy.sol > ./flattened/AdminUpgradeabilityProxy.sol",
     "ganache": "ganache-cli",
     "migrate": "truffle migrate",
@@ -29,12 +29,15 @@
   "homepage": "https://github.com/paxosglobal/pax-contracts#readme",
   "dependencies": {},
   "devDependencies": {
+    "eth-sig-util": "^2.1.0",
     "ganache-cli": "^6.1.2",
+    "openzeppelin-test-helpers": "^0.1.1",
     "solc": "^0.4.24",
     "solidity-coverage": "^0.5.4",
     "solium": "^1.1.8",
-    "truffle": "^4.1.11",
+    "truffle": "^5.0.0",
     "truffle-flattener": "^1.2.6",
-    "truffle-hdwallet-provider": "0.0.5"
+    "truffle-hdwallet-provider": "0.0.5",
+    "zos-lib": "2.1.0"
   }
 }
