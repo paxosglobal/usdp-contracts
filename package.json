@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "abi": "mkdir -p abi-out && solcjs --abi ./contracts/zeppelin/SafeMath.sol ./contracts/PAXImplementationV2.sol -o ./abi-out && cp ./abi-out/__contracts_PAXImplementationV2_sol_PAXImplementationV2.abi ./PAX.abi",
+    "truffle-abi": "cat build/contracts/PAXImplementationV2.json | jq -c .abi > PAX.abi",
+    "truffle-bin": "cat build/contracts/PAXImplementationV2.json | jq  -r .bytecode > PAX.bin",
     "compile": "truffle compile",
     "coverage": "solidity-coverage",
     "flatten-impl": "truffle-flattener ./contracts/PAXImplementationV2.sol > ./flattened/PAXImplementationV2.sol",

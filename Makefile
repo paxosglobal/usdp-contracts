@@ -1,5 +1,5 @@
 .PHONY:all
-all: fmt test-contracts compile flatten abi test-contracts-coverage
+all: fmt test-contracts compile flatten generate-bin test-contracts-coverage
 
 .PHONY:clean
 clean:
@@ -34,10 +34,6 @@ migrate:
 flatten:
 	@npm run flatten-impl
 	@npm run flatten-proxy
-
-.PHONY:abi
-abi:
-	@npm run abi
 
 # compile is needed as a dependency here to ensure the zos-lib based tests work
 .PHONY:test-contracts
