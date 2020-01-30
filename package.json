@@ -29,15 +29,16 @@
   "homepage": "https://github.com/paxosglobal/pax-contracts#readme",
   "dependencies": {},
   "devDependencies": {
-    "eth-sig-util": "^2.1.0",
-    "ganache-cli": "^6.1.2",
-    "openzeppelin-test-helpers": "^0.1.1",
+    "chai": "^4.2.0",
+    "eth-sig-util": "^2.5.2",
+    "ganache-cli": "^6.8.2",
+    "@openzeppelin/test-helpers": "^0.5.4",
+    "@openzeppelin/upgrades":  "^2.4.0",
     "solc": "^0.4.24",
-    "solidity-coverage": "^0.5.4",
-    "solium": "^1.1.8",
-    "truffle": "^5.0.0",
-    "truffle-flattener": "^1.2.6",
-    "truffle-hdwallet-provider": "0.0.5",
-    "zos-lib": "2.1.0"
+    "solidity-coverage": "^0.7.1",
+    "solium": "^1.2.5",
+    "truffle": "^5.1.10",
+    "truffle-flattener": "^1.4.2",
+    "@truffle/hdwallet-provider": "1.0.29"
   }
 }

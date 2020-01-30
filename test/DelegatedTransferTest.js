@@ -1,5 +1,5 @@
 const ethSigUtil = require('eth-sig-util');
-const {ZERO_ADDRESS} = require('openzeppelin-test-helpers').constants;
+const {ZERO_ADDRESS} = require('@openzeppelin/test-helpers').constants;
 
 const PAXMock = artifacts.require('PAXWithBalance.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');

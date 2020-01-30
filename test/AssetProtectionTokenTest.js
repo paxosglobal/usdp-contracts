@@ -2,8 +2,7 @@ const PAX = artifacts.require('PAXImplementationV2.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
-
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const {ZERO_ADDRESS} = require('@openzeppelin/test-helpers').constants;
 
 // Tests that PAX Asset Protection capabilities function correctly.
 contract('PAX', function ([_, admin, assetProtectionRole, otherAddress, freezableAddress, owner]) {

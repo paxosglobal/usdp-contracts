@@ -2,7 +2,7 @@ const PAX = artifacts.require('PAXImplementationV2.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
-const {ZERO_ADDRESS, MAX_UINT256} = require('openzeppelin-test-helpers').constants;
+const {ZERO_ADDRESS, MAX_UINT256} = require('@openzeppelin/test-helpers').constants;
 
 // Tests that PAX token supply control mechanisms operate correctly.
 contract('PAX', function ([_, admin, newSupplyController, otherAddress, owner]) {

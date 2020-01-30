@@ -2,10 +2,10 @@ const PAXMock = artifacts.require('PAXWithBalance.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
+const {ZERO_ADDRESS} = require('@openzeppelin/test-helpers').constants;
 
 // Test that PAX operates correctly as an ERC20Basic token.
 contract('ERC20Basic PAX', function ([_, admin, recipient, anotherAccount, owner]) {
-  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
   beforeEach(async function () {
     const pax = await PAXMock.new({from: owner});
@@ -85,7 +85,7 @@ contract('ERC20Basic PAX', function ([_, admin, recipient, anotherAccount, owner
           assert.equal(logs[0].event, 'Transfer');
           assert.equal(logs[0].args.from, owner);
           assert.equal(logs[0].args.to, to);
-          assert.equal(logs[0].args.value, amount);
+          assert(logs[0].args.value.eqn(amount));
         });
       });
     });

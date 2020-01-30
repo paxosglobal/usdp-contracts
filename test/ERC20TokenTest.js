@@ -2,10 +2,10 @@ const PAXMock = artifacts.require('PAXWithBalance.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
+const {ZERO_ADDRESS} = require('@openzeppelin/test-helpers').constants;
 
 // Test that PAX operates correctly as an ERC20 token.
 contract('ERC20 PAX', function ([_, admin, recipient, anotherAccount, owner]) {
-  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
   beforeEach(async function () {
     const pax = await PAXMock.new({from: owner});
@@ -30,7 +30,7 @@ contract('ERC20 PAX', function ([_, admin, recipient, anotherAccount, owner]) {
           assert.equal(logs[0].event, 'Approval');
           assert.equal(logs[0].args.owner, owner);
           assert.equal(logs[0].args.spender, spender);
-          assert.equal(logs[0].args.value, amount);
+          assert(logs[0].args.value.eqn(amount));
         });
 
         describe('when there was no approved amount before', function () {
@@ -66,7 +66,7 @@ contract('ERC20 PAX', function ([_, admin, recipient, anotherAccount, owner]) {
           assert.equal(logs[0].event, 'Approval');
           assert.equal(logs[0].args.owner, owner);
           assert.equal(logs[0].args.spender, spender);
-          assert.equal(logs[0].args.value, amount);
+          assert(logs[0].args.value.eqn(amount));
         });
 
         describe('when there was no approved amount before', function () {
@@ -110,7 +110,7 @@ contract('ERC20 PAX', function ([_, admin, recipient, anotherAccount, owner]) {
         assert.equal(logs[0].event, 'Approval');
         assert.equal(logs[0].args.owner, owner);
         assert.equal(logs[0].args.spender, spender);
-        assert.equal(logs[0].args.value, amount);
+        assert(logs[0].args.value.eqn(amount));
       });
     });
   });
@@ -143,7 +143,7 @@ contract('ERC20 PAX', function ([_, admin, recipient, anotherAccount, owner]) {
             await this.token.transferFrom(owner, to, amount, {from: spender});
 
             const allowance = await this.token.allowance(owner, spender);
-            assert.equal(allowance, 0);
+            assert(allowance.eqn(0));
           });
 
           it('emits a transfer event', async function () {
@@ -153,7 +153,7 @@ contract('ERC20 PAX', function ([_, admin, recipient, anotherAccount, owner]) {
             assert.equal(logs[0].event, 'Transfer');
             assert.equal(logs[0].args.from, owner);
             assert.equal(logs[0].args.to, to);
-            assert.equal(logs[0].args.value, amount);
+            assert(logs[0].args.value.eqn(amount));
           });
         });
 

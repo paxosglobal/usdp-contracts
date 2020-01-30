@@ -1,5 +1,7 @@
-const {getStorageLayout, compareStorageLayouts} = require('zos-lib');
+const {Contracts, getStorageLayout, compareStorageLayouts} = require('@openzeppelin/upgrades');
 
+const ImplV1Contract = Contracts.getFromLocal('PAXImplementation');
+const ImplV2Contract = Contracts.getFromLocal('PAXImplementationV2');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 const ImplV1 = artifacts.require('PAXImplementation.sol');
 let ImplV2 = artifacts.require('PAXImplementationV2.sol');
@@ -205,8 +207,8 @@ contract('UpgradeToV2 PAX', function (
   // However, solidity does intend to keep it consistent - see https://github.com/ethereum/solidity/issues/4049
   //   also see the documentation on the storage layout pattern: https://github.com/ethereum/solidity/blob/599760b6ab6129797767e6bccfd2a6e842014d80/docs/miscellaneous.rst#layout-of-state-variables-in-storage
   it('has the same storage layout according to the AST-based tool from zeppelin os', function () {
-    const layoutV1 = getStorageLayout(ImplV1);
-    const layoutV2 = getStorageLayout(ImplV2);
+    const layoutV1 = getStorageLayout(ImplV1Contract, ImplV1);
+    const layoutV2 = getStorageLayout(ImplV2Contract);
     const comparison = compareStorageLayouts(layoutV1, layoutV2);
 
     // The only changes should be expected additions - note action = 'append'!
