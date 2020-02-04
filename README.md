@@ -139,7 +139,7 @@ to the proxy contract.
 
 The proxy contract and implementation contracts are verified on etherscan at the following links:
 https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1
-https://etherscan.io/token/0x6ffcb0f00c3ad2575e443152d8861aec1bda9ce6
+https://etherscan.io/token/0x86Eee0422322710866aF89E9cAe3F7383d55310a
 
 Because the implementation address in the proxy is a private variable, 
 verifying that this is the proxy being used requires reading contract
