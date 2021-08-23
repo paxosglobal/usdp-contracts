@@ -6,9 +6,9 @@ import "./zeppelin/SafeMath.sol";
 
 
 /**
- * @title PAXImplementationV2
+ * @title USDPImplementationV3
  * @dev this contract is a Pausable ERC20 token with Burn and Mint
- * controlled by a central SupplyController. By implementing PaxosImplementation
+ * controlled by a central SupplyController. By implementing USDPImplementation
  * this contract also includes external methods for setting
  * a new implementation contract for the Proxy.
  * NOTE: The storage defined here will actually be held in the Proxy
@@ -17,7 +17,7 @@ import "./zeppelin/SafeMath.sol";
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract PAXImplementationV2 {
+contract USDPImplementationV3 {
 
     /**
      * MATH
@@ -35,8 +35,8 @@ contract PAXImplementationV2 {
     // ERC20 BASIC DATA
     mapping(address => uint256) internal balances;
     uint256 internal totalSupply_;
-    string public constant name = "Paxos Standard"; // solium-disable-line
-    string public constant symbol = "PAX"; // solium-disable-line uppercase
+    string public constant name = "Pax Dollar"; // solium-disable-line
+    string public constant symbol = "USDP"; // solium-disable-line uppercase
     uint8 public constant decimals = 18; // solium-disable-line uppercase
 
     // ERC20 DATA
@@ -319,11 +319,11 @@ contract PAXImplementationV2 {
     }
 
     /**
-     * @dev Reclaim all PAX at the contract address.
-     * This sends the PAX tokens that this contract add holding to the owner.
+     * @dev Reclaim all USDP at the contract address.
+     * This sends the USDP tokens that this contract add holding to the owner.
      * Note: this is not affected by freeze constraints.
      */
-    function reclaimPAX() external onlyOwner {
+    function reclaimUSDP() external onlyOwner {
         uint256 _balance = balances[this];
         balances[this] = 0;
         balances[owner] = balances[owner].add(_balance);

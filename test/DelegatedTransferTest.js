@@ -1,7 +1,7 @@
 const ethSigUtil = require('eth-sig-util');
 const {ZERO_ADDRESS} = require('@openzeppelin/test-helpers').constants;
 
-const PAXMock = artifacts.require('PAXWithBalance.sol');
+const USDPMock = artifacts.require('USDPWithBalance.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
@@ -11,20 +11,20 @@ const privateKey = new Buffer("43f2ee33c522046e80b67e96ceb84a05b60b9434b0ee2e3ae
 // EIP-55 of ethereumjsUtil.bufferToHex(ethereumjsUtil.privateToAddress(privateKey));
 const fromAddress = '0xBd2e9CaF03B81e96eE27AD354c579E1310415F39';
 
-// Test that PAX operates correctly as a token with BetaDelegatedTransfer.
-contract('BetaDelegatedTransfer PAX', function ([_, admin, owner, executor, recipient, whitelister, bystander]) {
+// Test that USDP operates correctly as a token with BetaDelegatedTransfer.
+contract('BetaDelegatedTransfer USDP', function ([_, admin, owner, executor, recipient, whitelister, bystander]) {
 
   const amount = 10;
   const feeAmount = 1;
 
   beforeEach(async function () {
-    const pax = await PAXMock.new({from: owner});
-    const proxy = await Proxy.new(pax.address, {from: admin});
-    const proxiedPAX = await PAXMock.at(proxy.address);
-    await proxiedPAX.initialize({from: owner});
-    await proxiedPAX.initializeDomainSeparator({from: owner});
-    await proxiedPAX.initializeBalance(owner, 100);
-    this.token = proxiedPAX;
+    const usdp = await USDPMock.new({from: owner});
+    const proxy = await Proxy.new(usdp.address, {from: admin});
+    const proxiedUSDP = await USDPMock.at(proxy.address);
+    await proxiedUSDP.initialize({from: owner});
+    await proxiedUSDP.initializeDomainSeparator({from: owner});
+    await proxiedUSDP.initializeBalance(owner, 100);
+    this.token = proxiedUSDP;
   });
 
   describe('as a token with delegated transfer', function () {
@@ -45,7 +45,7 @@ contract('BetaDelegatedTransfer PAX', function ([_, admin, owner, executor, reci
         },
         primaryType: 'BetaDelegatedTransfer',
         domain: {
-          name: 'Paxos Standard',
+          name: 'Pax Dollar',
           verifyingContract: this.token.address,
         },
       };

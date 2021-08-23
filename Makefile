@@ -3,7 +3,7 @@ all: fmt test-contracts compile flatten generate-bin test-contracts-coverage
 
 .PHONY:clean
 clean:
-	@rm -r out/ || true
+	@rm -r build/ || true
 
 ##################
 # Code

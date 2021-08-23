@@ -1,18 +1,18 @@
-const PAX = artifacts.require('PAXImplementationV2.sol');
+const USDP = artifacts.require('USDPImplementationV3.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
 const {ZERO_ADDRESS} = require('@openzeppelin/test-helpers').constants;
 
-// Tests that PAX Asset Protection capabilities function correctly.
-contract('PAX', function ([_, admin, assetProtectionRole, otherAddress, freezableAddress, owner]) {
+// Tests that USDP Asset Protection capabilities function correctly.
+contract('USDP', function ([_, admin, assetProtectionRole, otherAddress, freezableAddress, owner]) {
 
   beforeEach(async function () {
-    const pax = await PAX.new({from: owner});
-    const proxy = await Proxy.new(pax.address, {from: admin});
-    const proxiedPAX = await PAX.at(proxy.address);
-    await proxiedPAX.initialize({from: owner});
-    this.token = proxiedPAX;
+    const usdp = await USDP.new({from: owner});
+    const proxy = await Proxy.new(usdp.address, {from: admin});
+    const proxiedUSDP = await USDP.at(proxy.address);
+    await proxiedUSDP.initialize({from: owner});
+    this.token = proxiedUSDP;
   });
 
   describe('when the asset protection role is unset', function () {

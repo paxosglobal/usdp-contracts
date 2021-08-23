@@ -1,19 +1,19 @@
-const PAXMock = artifacts.require('PAXWithBalance.sol');
+const USDPMock = artifacts.require('USDPWithBalance.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
 const {ZERO_ADDRESS} = require('@openzeppelin/test-helpers').constants;
 
-// Test that PAX operates correctly as an ERC20 token.
-contract('ERC20 PAX', function ([_, admin, recipient, anotherAccount, owner]) {
+// Test that USDP operates correctly as an ERC20 token.
+contract('ERC20 USDP', function ([_, admin, recipient, anotherAccount, owner]) {
 
   beforeEach(async function () {
-    const pax = await PAXMock.new({from: owner});
-    const proxy = await Proxy.new(pax.address, {from: admin});
-    const proxiedPAX = await PAXMock.at(proxy.address);
-    await proxiedPAX.initialize({from: owner});
-    await proxiedPAX.initializeBalance(owner, 100);
-    this.token = proxiedPAX;
+    const usdp = await USDPMock.new({from: owner});
+    const proxy = await Proxy.new(usdp.address, {from: admin});
+    const proxiedUSDP = await USDPMock.at(proxy.address);
+    await proxiedUSDP.initialize({from: owner});
+    await proxiedUSDP.initializeBalance(owner, 100);
+    this.token = proxiedUSDP;
   });
 
   describe('approve', function () {

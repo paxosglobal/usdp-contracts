@@ -1,14 +1,45 @@
+// File: contracts/zeppelin/SafeMath.sol
+
+pragma solidity ^0.4.24;
+
+
+/**
+ * @title SafeMath
+ * @dev Math operations with safety checks that throw on error
+ */
+library SafeMath {
+    /**
+    * @dev Subtracts two numbers, reverts on overflow (i.e. if subtrahend is greater than minuend).
+    */
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        require(b <= a);
+        uint256 c = a - b;
+
+        return c;
+    }
+
+    /**
+    * @dev Adds two numbers, reverts on overflow.
+    */
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+        require(c >= a);
+
+        return c;
+    }
+}
+
+// File: contracts/USDPImplementationV3.sol
+
 pragma solidity ^0.4.24;
 pragma experimental "v0.5.0";
 
-
-import "../../contracts/zeppelin/SafeMath.sol";
 
 
 /**
  * @title USDPImplementationV3
  * @dev this contract is a Pausable ERC20 token with Burn and Mint
- * controlled by a central SupplyController. By implementing PaxosImplementation
+ * controlled by a central SupplyController. By implementing USDPImplementation
  * this contract also includes external methods for setting
  * a new implementation contract for the Proxy.
  * NOTE: The storage defined here will actually be held in the Proxy
@@ -17,7 +48,7 @@ import "../../contracts/zeppelin/SafeMath.sol";
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract BadV2UpgradeExample {
+contract USDPImplementationV3 {
 
     /**
      * MATH
@@ -29,37 +60,20 @@ contract BadV2UpgradeExample {
      * DATA
      */
 
-    // BadV2UpgradeExample: What's different here is that the new storage is at the beginning!
-
-    // DELEGATED TRANSFER DATA
-    mapping(address => uint256) internal nextSeqs;
-    // EIP191 header for EIP712 prefix
-    string constant internal EIP191_HEADER = "\x19\x01";
-    // Hash of the EIP712 Domain Separator Schema
-    bytes32 constant internal EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH = keccak256(
-        "EIP712Domain(string name,address verifyingContract)"
-    );
-    bytes32 constant internal EIP712_DELEGATED_TRANSFER_SCHEMA_HASH = keccak256(
-        "DelegatedTransfer(address to,uint256 value,uint256 fee,uint256 seq,uint256 deadline)"
-    );
-    // Hash of the EIP712 Domain Separator data
-    // solhint-disable-next-line var-name-mixedcase
-    bytes32 public EIP712_DOMAIN_HASH;
-
     // INITIALIZATION DATA
     bool private initialized = false;
 
     // ERC20 BASIC DATA
     mapping(address => uint256) internal balances;
     uint256 internal totalSupply_;
-    string public constant name = "Paxos Standard"; // solium-disable-line
+    string public constant name = "Pax Dollar"; // solium-disable-line
     string public constant symbol = "USDP"; // solium-disable-line uppercase
     uint8 public constant decimals = 18; // solium-disable-line uppercase
 
     // ERC20 DATA
     mapping(address => mapping(address => uint256)) internal allowed;
 
-    // OWNER DATA
+    // OWNER DATA PART 1
     address public owner;
 
     // PAUSABILITY DATA
@@ -71,6 +85,26 @@ contract BadV2UpgradeExample {
 
     // SUPPLY CONTROL DATA
     address public supplyController;
+
+    // OWNER DATA PART 2
+    address public proposedOwner;
+
+    // DELEGATED TRANSFER DATA
+    address public betaDelegateWhitelister;
+    mapping(address => bool) internal betaDelegateWhitelist;
+    mapping(address => uint256) internal nextSeqs;
+    // EIP191 header for EIP712 prefix
+    string constant internal EIP191_HEADER = "\x19\x01";
+    // Hash of the EIP712 Domain Separator Schema
+    bytes32 constant internal EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH = keccak256(
+        "EIP712Domain(string name,address verifyingContract)"
+    );
+    bytes32 constant internal EIP712_DELEGATED_TRANSFER_SCHEMA_HASH = keccak256(
+        "BetaDelegatedTransfer(address to,uint256 value,uint256 fee,uint256 seq,uint256 deadline)"
+    );
+    // Hash of the EIP712 Domain Separator data
+    // solhint-disable-next-line var-name-mixedcase
+    bytes32 public EIP712_DOMAIN_HASH;
 
     /**
      * EVENTS
@@ -87,6 +121,13 @@ contract BadV2UpgradeExample {
     );
 
     // OWNABLE EVENTS
+    event OwnershipTransferProposed(
+        address indexed currentOwner,
+        address indexed proposedOwner
+    );
+    event OwnershipTransferDisregarded(
+        address indexed oldProposedOwner
+    );
     event OwnershipTransferred(
         address indexed oldOwner,
         address indexed newOwner
@@ -114,9 +155,15 @@ contract BadV2UpgradeExample {
     );
 
     // DELEGATED TRANSFER EVENTS
-    event DelegatedTransfer(
+    event BetaDelegatedTransfer(
         address indexed from, address indexed to, uint256 value, uint256 seq, uint256 fee
     );
+    event BetaDelegateWhitelisterSet(
+        address indexed oldWhitelister,
+        address indexed newWhitelister
+    );
+    event BetaDelegateWhitelisted(address indexed newDelegate);
+    event BetaDelegateUnwhitelisted(address indexed oldDelegate);
 
     /**
      * FUNCTIONALITY
@@ -161,6 +208,7 @@ contract BadV2UpgradeExample {
                 keccak256(bytes(name)),
                 bytes32(address(this))
             ));
+        proposedOwner = address(0);
     }
 
     // ERC20 BASIC FUNCTIONALITY
@@ -271,13 +319,34 @@ contract BadV2UpgradeExample {
     }
 
     /**
-     * @dev Allows the current owner to transfer control of the contract to a newOwner.
-     * @param _newOwner The address to transfer ownership to.
+         * @dev Allows the current owner to begin transferring control of the contract to a proposedOwner
+         * @param _proposedOwner The address to transfer ownership to.
+         */
+    function proposeOwner(address _proposedOwner) public onlyOwner {
+        require(_proposedOwner != address(0), "cannot transfer ownership to address zero");
+        require(msg.sender != _proposedOwner, "caller already is owner");
+        proposedOwner = _proposedOwner;
+        emit OwnershipTransferProposed(owner, proposedOwner);
+    }
+    /**
+     * @dev Allows the current owner or proposed owner to cancel transferring control of the contract to a proposedOwner
      */
-    function transferOwnership(address _newOwner) public onlyOwner {
-        require(_newOwner != address(0), "cannot transfer ownership to address zero");
-        emit OwnershipTransferred(owner, _newOwner);
-        owner = _newOwner;
+    function disregardProposeOwner() public {
+        require(msg.sender == proposedOwner || msg.sender == owner, "only proposedOwner or owner");
+        require(proposedOwner != address(0), "can only disregard a proposed owner that was previously set");
+        address _oldProposedOwner = proposedOwner;
+        proposedOwner = address(0);
+        emit OwnershipTransferDisregarded(_oldProposedOwner);
+    }
+    /**
+     * @dev Allows the proposed owner to complete transferring control of the contract to the proposedOwner.
+     */
+    function claimOwnership() public {
+        require(msg.sender == proposedOwner, "onlyProposedOwner");
+        address _oldOwner = owner;
+        owner = proposedOwner;
+        proposedOwner = address(0);
+        emit OwnershipTransferred(_oldOwner, owner);
     }
 
     /**
@@ -373,7 +442,7 @@ contract BadV2UpgradeExample {
     }
 
     /**
-    * @dev Gets the balance of the specified address.
+    * @dev Gets whether the address is currently frozen.
     * @param _addr The address to check if frozen.
     * @return A bool representing whether the given address is frozen.
     */
@@ -441,29 +510,20 @@ contract BadV2UpgradeExample {
     }
 
     /**
-     * @dev Performs a transfer on behalf of the from address, identified by its signature on the delegatedTransfer msg
-     * Note: both the executor and transactor sign in the fees. The transactor, however,
-     * has no control over the gas price, and therefore no control over the transaction time.
-     * @param sig the signature of the delgatedTransfer msg
+     * @dev Performs a transfer on behalf of the from address, identified by its signature on the delegatedTransfer msg.
+     * Splits a signature byte array into r,s,v for convenience.
+     * @param sig the signature of the delgatedTransfer msg.
      * @param to The address to transfer to.
      * @param value The amount to be transferred.
-     * @param fee an optional ERC20 fee paid to the executor of delegatedTransfer by the from address
+     * @param fee an optional ERC20 fee paid to the executor of betaDelegatedTransfer by the from address.
      * @param seq a sequencing number included by the from address specific to this contract to protect from replays.
-     * @param deadline a block number after which the pre-signed transaction has expired
+     * @param deadline a block number after which the pre-signed transaction has expired.
      * @return A boolean that indicates if the operation was successful.
      */
-    function delegatedTransfer(
+    function betaDelegatedTransfer(
         bytes sig, address to, uint256 value, uint256 fee, uint256 seq, uint256 deadline
-    ) public whenNotPaused returns (bool) {
+    ) public returns (bool) {
         require(sig.length == 65, "signature should have length 65");
-        require(value > 0, "cannot transfer zero tokens");
-        require(block.number <= deadline, "transaction expired");
-
-        // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
-        bytes32 delegatedTransferHash = keccak256(abi.encodePacked(// solium-disable-line
-                EIP712_DELEGATED_TRANSFER_SCHEMA_HASH, bytes32(to), value, fee, seq, deadline
-            ));
-        bytes32 hash = keccak256(abi.encodePacked(EIP191_HEADER, EIP712_DOMAIN_HASH, delegatedTransferHash));
         bytes32 r;
         bytes32 s;
         uint8 v;
@@ -472,23 +532,132 @@ contract BadV2UpgradeExample {
             s := mload(add(sig, 64))
             v := byte(0, mload(add(sig, 96)))
         }
-        address from = ecrecover(hash, v, r, s);
+        require(_betaDelegatedTransfer(r, s, v, to, value, fee, seq, deadline), "failed transfer");
+        return true;
+    }
 
-        require(from != address(0) && to != address(0), "cannot use address zero");
-        require(!frozen[to] && !frozen[from] && !frozen[msg.sender], "address frozen");
-        require(value+fee <= balances[from], "insufficient funds");
-        require(nextSeqs[from] == seq, "incorrect seq");
+    /**
+     * @dev Performs a transfer on behalf of the from address, identified by its signature on the betaDelegatedTransfer msg.
+     * Note: both the delegate and transactor sign in the fees. The transactor, however,
+     * has no control over the gas price, and therefore no control over the transaction time.
+     * Beta prefix chosen to avoid a name clash with an emerging standard in ERC865 or elsewhere.
+     * Internal to the contract - see betaDelegatedTransfer and betaDelegatedTransferBatch.
+     * @param r the r signature of the delgatedTransfer msg.
+     * @param s the s signature of the delgatedTransfer msg.
+     * @param v the v signature of the delgatedTransfer msg.
+     * @param to The address to transfer to.
+     * @param value The amount to be transferred.
+     * @param fee an optional ERC20 fee paid to the delegate of betaDelegatedTransfer by the from address.
+     * @param seq a sequencing number included by the from address specific to this contract to protect from replays.
+     * @param deadline a block number after which the pre-signed transaction has expired.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function _betaDelegatedTransfer(
+        bytes32 r, bytes32 s, uint8 v, address to, uint256 value, uint256 fee, uint256 seq, uint256 deadline
+    ) internal whenNotPaused returns (bool) {
+        require(betaDelegateWhitelist[msg.sender], "Beta feature only accepts whitelisted delegates");
+        require(value > 0 || fee > 0, "cannot transfer zero tokens with zero fee");
+        require(block.number <= deadline, "transaction expired");
+        // prevent sig malleability from ecrecover()
+        require(uint256(s) <= 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0, "signature incorrect");
+        require(v == 27 || v == 28, "signature incorrect");
 
-        nextSeqs[from] = nextSeqs[from] + 1;
-        balances[from] = balances[from].sub(value + fee);
+        // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
+        bytes32 delegatedTransferHash = keccak256(abi.encodePacked(// solium-disable-line
+                EIP712_DELEGATED_TRANSFER_SCHEMA_HASH, bytes32(to), value, fee, seq, deadline
+            ));
+        bytes32 hash = keccak256(abi.encodePacked(EIP191_HEADER, EIP712_DOMAIN_HASH, delegatedTransferHash));
+        address _from = ecrecover(hash, v, r, s);
+
+        require(_from != address(0), "error determining from address from signature");
+        require(to != address(0), "canno use address zero");
+        require(!frozen[to] && !frozen[_from] && !frozen[msg.sender], "address frozen");
+        require(value.add(fee) <= balances[_from], "insufficient fund");
+        require(nextSeqs[_from] == seq, "incorrect seq");
+
+        nextSeqs[_from] = nextSeqs[_from].add(1);
+        balances[_from] = balances[_from].sub(value.add(fee));
         if (fee != 0) {
             balances[msg.sender] = balances[msg.sender].add(fee);
-            emit Transfer(from, msg.sender, fee);
+            emit Transfer(_from, msg.sender, fee);
         }
         balances[to] = balances[to].add(value);
-        emit Transfer(from, to, value);
+        emit Transfer(_from, to, value);
 
-        emit DelegatedTransfer(from, to, value, seq, fee);
+        emit BetaDelegatedTransfer(_from, to, value, seq, fee);
         return true;
+    }
+
+    /**
+     * @dev Performs an atomic batch of transfers on behalf of the from addresses, identified by their signatures.
+     * Lack of nested array support in arguments requires all arguments to be passed as equal size arrays where
+     * delegated transfer number i is the combination of all arguments at index i
+     * @param r the r signatures of the delgatedTransfer msg.
+     * @param s the s signatures of the delgatedTransfer msg.
+     * @param v the v signatures of the delgatedTransfer msg.
+     * @param to The addresses to transfer to.
+     * @param value The amounts to be transferred.
+     * @param fee optional ERC20 fees paid to the delegate of betaDelegatedTransfer by the from address.
+     * @param seq sequencing numbers included by the from address specific to this contract to protect from replays.
+     * @param deadline block numbers after which the pre-signed transactions have expired.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function betaDelegatedTransferBatch(
+        bytes32[] r, bytes32[] s, uint8[] v, address[] to, uint256[] value, uint256[] fee, uint256[] seq, uint256[] deadline
+    ) public returns (bool) {
+        require(r.length == s.length && r.length == v.length && r.length == to.length && r.length == value.length, "length mismatch");
+        require(r.length == fee.length && r.length == seq.length && r.length == deadline.length, "length mismatch");
+
+        for (uint i = 0; i < r.length; i++) {
+            require(
+                _betaDelegatedTransfer(r[i], s[i], v[i], to[i], value[i], fee[i], seq[i], deadline[i]),
+                "failed transfer"
+            );
+        }
+        return true;
+    }
+
+    /**
+    * @dev Gets whether the address is currently whitelisted for betaDelegateTransfer.
+    * @param _addr The address to check if whitelisted.
+    * @return A bool representing whether the given address is whitelisted.
+    */
+    function isWhitelistedBetaDelegate(address _addr) public view returns (bool) {
+        return betaDelegateWhitelist[_addr];
+    }
+
+    /**
+     * @dev Sets a new betaDelegate whitelister.
+     * @param _newWhitelister The address allowed to whitelist betaDelegates.
+     */
+    function setBetaDelegateWhitelister(address _newWhitelister) public {
+        require(msg.sender == betaDelegateWhitelister || msg.sender == owner, "only Whitelister or Owner");
+        betaDelegateWhitelister = _newWhitelister;
+        emit BetaDelegateWhitelisterSet(betaDelegateWhitelister, _newWhitelister);
+    }
+
+    modifier onlyBetaDelegateWhitelister() {
+        require(msg.sender == betaDelegateWhitelister, "onlyBetaDelegateWhitelister");
+        _;
+    }
+
+    /**
+     * @dev Whitelists an address to allow calling BetaDelegatedTransfer.
+     * @param _addr The new address to whitelist.
+     */
+    function whitelistBetaDelegate(address _addr) public onlyBetaDelegateWhitelister {
+        require(!betaDelegateWhitelist[_addr], "delegate already whitelisted");
+        betaDelegateWhitelist[_addr] = true;
+        emit BetaDelegateWhitelisted(_addr);
+    }
+
+    /**
+     * @dev Unwhitelists an address to disallow calling BetaDelegatedTransfer.
+     * @param _addr The new address to whitelist.
+     */
+    function unwhitelistBetaDelegate(address _addr) public onlyBetaDelegateWhitelister {
+        require(betaDelegateWhitelist[_addr], "delegate not whitelisted");
+        betaDelegateWhitelist[_addr] = false;
+        emit BetaDelegateUnwhitelisted(_addr);
     }
 }

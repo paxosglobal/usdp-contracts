@@ -1,18 +1,18 @@
-const PAX = artifacts.require('PAXImplementationV2.sol');
+const USDP = artifacts.require('USDPImplementationV3.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
 const {ZERO_ADDRESS, MAX_UINT256} = require('@openzeppelin/test-helpers').constants;
 
-// Tests that PAX token supply control mechanisms operate correctly.
-contract('PAX', function ([_, admin, newSupplyController, otherAddress, owner]) {
+// Tests that USDP token supply control mechanisms operate correctly.
+contract('USDP', function ([_, admin, newSupplyController, otherAddress, owner]) {
 
   beforeEach(async function () {
-    const pax = await PAX.new({from: owner});
-    const proxy = await Proxy.new(pax.address, {from: admin});
-    const proxiedPAX = await PAX.at(proxy.address);
-    await proxiedPAX.initialize({from: owner});
-    this.token = proxiedPAX;
+    const usdp = await USDP.new({from: owner});
+    const proxy = await Proxy.new(usdp.address, {from: admin});
+    const proxiedUSDP = await USDP.at(proxy.address);
+    await proxiedUSDP.initialize({from: owner});
+    this.token = proxiedUSDP;
   });
 
   describe('as a supply-controlled token', function () {

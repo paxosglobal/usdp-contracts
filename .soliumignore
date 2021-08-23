@@ -5,3 +5,4 @@ contracts/zeppelin/UpgradeabilityProxy.sol
 contracts/zeppelin/AdminUpgradeabilityProxy.sol
 contracts/zeppelin/SafeMath.sol
 contracts/archive/PAXImplementationV1.sol
+contracts/archive/PAXImplementationV2.sol

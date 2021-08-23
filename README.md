@@ -1,4 +1,4 @@
-# Paxos Standard (PAX)
+# Pax Dollar (USDP)
 Paxos-issued USD-collateralized ERC20 stablecoin public smart contract repository.
 
 https://www.paxos.com/standard
@@ -7,20 +7,20 @@ The whitepaper can be found [here](https://standard.paxos.com/whitepaper.pdf).
 
 ## ABI, Address, and Verification
 
-The contract abi is in `PAX.abi`. It is the abi of the implementation contract.
-Interaction with PAX Standard is done at the address of the proxy at `0x8e870d67f660d95d5be530380d0ec0bd388289e1`. See
+The contract abi is in `USDP.abi`. It is the abi of the implementation contract.
+Interaction with Pax Dollar is done at the address of the proxy at `0x8e870d67f660d95d5be530380d0ec0bd388289e1`. See
 https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1 for live on-chain details, and the section on bytecode verification below.
 See also our independent security audits by [Nomic Labs](https://medium.com/nomic-labs-blog/paxos-standard-pax-audit-report-ca743c9575dc), [ChainSecurity](https://medium.com/chainsecurity/paxos-standard-audit-completed-2e9a0064e8bb),
 and [Trail of Bits](https://github.com/trailofbits/publications/blob/master/reviews/paxos.pdf).
 
 ## Contract Specification
 
-Paxos Standard (PAX) is an ERC20 token that is Centrally Minted and Burned by Paxos,
+Pax Dollar (USDP) is an ERC20 token that is Centrally Minted and Burned by Paxos,
 representing the trusted party backing the token with USD.
 
 ### ERC20 Token
 
-The public interface of PAX Standard is the ERC20 interface
+The public interface of Pax Dollar is the ERC20 interface
 specified by [EIP-20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md).
 
 - `name()`
@@ -60,13 +60,13 @@ transaction mined onto the blockchain more quickly.
 
 ### Controlling the token supply
 
-The total supply of PAX is backed by fiat held in reserve at Paxos.
+The total supply of USDP is backed by fiat held in reserve at Paxos.
 There is a single `supplyController` address that can mint and burn the token
 based on the actual movement of cash in and out of the reserve based on
-requests for the purchase and redemption of PAX.
+requests for the purchase and redemption of USDP.
 
 The supply control interface includes methods to get the current address
-of the supply controller, and events to monitor the change in supply of PAX.
+of the supply controller, and events to monitor the change in supply of USDP.
 
 - `supplyController()`
 
@@ -79,7 +79,7 @@ Supply Control Events
 ### Pausing the contract
 
 In the event of a critical security threat, Paxos has the ability to pause transfers
-and approvals of the PAX token. The ability to pause is controlled by a single `owner` role,
+and approvals of the USDP token. The ability to pause is controlled by a single `owner` role,
  following OpenZeppelin's
 [Ownable](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/5daaf60d11ee2075260d0f3adfb22b1c536db983/contracts/ownership/Ownable.sol). 
 The simple model for pausing transfers following OpenZeppelin's
@@ -89,7 +89,7 @@ The simple model for pausing transfers following OpenZeppelin's
 
 As required by our regulators, we have introduced a role for asset protection to freeze or seize the assets of a criminal party when required to do so by law, including by court order or other legal process.
 
-The `assetProtectionRole` can freeze and unfreeze the PAX balance of any address on chain.
+The `assetProtectionRole` can freeze and unfreeze the USDP balance of any address on chain.
 It can also wipe the balance of an address after it is frozen
 to allow the appropriate authorities to seize the backing assets. 
 
@@ -122,7 +122,7 @@ implementation contract.
 The delegation uses `delegatecall`, which runs the code of the implementation contract
 _in the context of the proxy storage_. This way the implementation pointer can
 be changed to a different implementation contract while still keeping the same
-data and PAX contract address, which are really for the proxy contract.
+data and USDP contract address, which are really for the proxy contract.
 
 The proxy used here is AdminUpgradeabilityProxy from ZeppelinOS.
 
@@ -139,7 +139,7 @@ to the proxy contract.
 
 The proxy contract and implementation contracts are verified on etherscan at the following links:
 https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1
-https://etherscan.io/token/0x86Eee0422322710866aF89E9cAe3F7383d55310a
+https://etherscan.io/token/0xb54d4E8BB827f99af764b37249990Fa9D6840E20
 
 Because the implementation address in the proxy is a private variable, 
 verifying that this is the proxy being used requires reading contract
