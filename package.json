@@ -7,11 +7,11 @@
     "test": "test"
   },
   "scripts": {
-    "truffle-abi": "cat build/contracts/PAXImplementationV2.json | jq -c .abi > PAX.abi",
-    "truffle-bin": "cat build/contracts/PAXImplementationV2.json | jq  -r .bytecode > PAX.bin",
+    "truffle-abi": "cat build/contracts/USDPImplementationV3.json | jq -c .abi > USDP.abi",
+    "truffle-bin": "cat build/contracts/USDPImplementationV3.json | jq  -r .bytecode > USDP.bin",
     "compile": "truffle compile",
     "coverage": "solidity-coverage",
-    "flatten-impl": "truffle-flattener ./contracts/PAXImplementationV2.sol > ./flattened/PAXImplementationV2.sol",
+    "flatten-impl": "truffle-flattener contracts/USDPImplementationV3.sol > ./flattened/USDPImplementationV3.sol",
     "flatten-proxy": "truffle-flattener ./contracts/zeppelin/AdminUpgradeabilityProxy.sol > ./flattened/AdminUpgradeabilityProxy.sol",
     "ganache": "ganache-cli",
     "migrate": "truffle migrate",

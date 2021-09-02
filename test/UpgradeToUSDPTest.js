@@ -1,17 +1,17 @@
 const {Contracts, getStorageLayout, compareStorageLayouts} = require('@openzeppelin/upgrades');
 
-const ImplV1Contract = Contracts.getFromLocal('PAXImplementation');
 const ImplV2Contract = Contracts.getFromLocal('PAXImplementationV2');
+const ImplV3Contract = Contracts.getFromLocal('USDPImplementationV3');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
-const ImplV1 = artifacts.require('PAXImplementation.sol');
-let ImplV2 = artifacts.require('PAXImplementationV2.sol');
+const ImplV2 = artifacts.require('PAXImplementationV2.sol');
+let ImplV3 = artifacts.require('USDPImplementationV3.sol');
 
 //// For funsies! Uncomment this line and see that it fails because the memory layout is different
-//// Note that the only difference from PAXImplementationV2 is that the new memory is declared first
+//// Note that the only difference from USDPImplementationV3 is that the new memory is declared first
 //// A quicker test command is `truffle test ./test/UpgradeToV2Test.js ./test/mocks/BadV2UpgradeExample.sol`
 ////   0 passing (6s)
 ////   4 failing
-// ImplV2 = artifacts.require('BadV2UpgradeExample.sol');
+// ImplUSDP = artifacts.require('BadV2UpgradeExample.sol');
 
 const BN = web3.utils.BN;
 
@@ -52,7 +52,7 @@ const assertRevert = require('./helpers/assertRevert');
  */
 
 // Test that PAX operates correctly as a token with DelegatedTransfer.
-contract('UpgradeToV2 PAX', function (
+contract('UpgradeToUSDP', function (
   [_, admin, owner, supplyController, assetProtection, recipient, purchaser, holder, bystander, frozen]
 ) {
 
@@ -62,14 +62,10 @@ contract('UpgradeToV2 PAX', function (
 
   beforeEach(async function () {
     // set all types of data - roles, balances, approvals, freezes
-    this.setData = async function (useLawEnforcment) {
+    this.setData = async function () {
       // set roles
       await this.token.setSupplyController(supplyController, {from: owner});
-      if (useLawEnforcment) {
-        await this.token.setLawEnforcementRole(assetProtection, {from: owner});
-      } else {
-        await this.newToken.setAssetProtectionRole(assetProtection, {from: owner});
-      }
+      await this.token.setAssetProtectionRole(assetProtection, {from: owner});
 
       // emulate some purchases and transfers
       await this.token.increaseSupply(supply, {from: supplyController});
@@ -89,9 +85,10 @@ contract('UpgradeToV2 PAX', function (
     };
 
     this.upgrade = async function () {
-      this.paxV2 = await ImplV2.new({from: owner});
+      this.implV3 = await ImplV3.new({from: owner});
       const funcSig = web3.eth.abi.encodeFunctionSignature('initializeDomainSeparator()'); // 0x2ff79161
-      await this.proxy.upgradeToAndCall(this.paxV2.address, funcSig, {from: admin});
+      console.log("func sig", funcSig)
+      await this.proxy.upgradeToAndCall(this.implV3.address, funcSig, {from: admin});
     };
 
     this.checkData = async function () {
@@ -111,22 +108,22 @@ contract('UpgradeToV2 PAX', function (
     };
 
     // deploy the contracts
-    const paxV1 = await ImplV1.new({from: owner});
-    const proxy = await Proxy.new(paxV1.address, {from: admin});
-    const proxiedPAX = await ImplV1.at(proxy.address);
-    await proxiedPAX.initialize({from: owner});
-    this.token = proxiedPAX;
-    this.newToken = await ImplV2.at(proxy.address);
+    const paxV2 = await ImplV2.new({from: owner});
+    const proxy = await Proxy.new(paxV2.address, {from: admin});
+    const proxiedV2 = await ImplV2.at(proxy.address);
+    await proxiedV2.initialize({from: owner});
+    this.token = proxiedV2;
+    this.newToken = await ImplV3.at(proxy.address);
     this.proxy = proxy;
 
     // set the data
-    await this.setData(true);
+    await this.setData();
 
     // read the data - note: the data here is always read before the upgrade
 
     this.currentSC = await this.token.supplyController();
     assert.strictEqual(this.currentSC, supplyController);
-    this.currentAP = await this.token.lawEnforcementRole();
+    this.currentAP = await this.token.assetProtectionRole();
     assert.strictEqual(this.currentAP, assetProtection);
 
     // other things that shouldn't change
@@ -171,35 +168,28 @@ contract('UpgradeToV2 PAX', function (
 
   it('gives the same result as if we upgraded first', async function () {
     // deploy new contracts
-    const paxV1 = await ImplV1.new({from: owner});
-    const proxy = await Proxy.new(paxV1.address, {from: admin});
-    const proxiedPAX = await ImplV1.at(proxy.address);
-    await proxiedPAX.initialize({from: owner});
+    const paxV2 = await ImplV2.new({from: owner});
+    const proxy = await Proxy.new(paxV2.address, {from: admin});
+    const proxiedV2 = await ImplV2.at(proxy.address);
+    await proxiedV2.initialize({from: owner});
 
     // make sure these are new contracts
-    assert.notStrictEqual(this.token.address, proxiedPAX.address);
+    assert.notStrictEqual(this.token.address, proxiedV2.address);
     assert.notStrictEqual(this.proxy.address, proxy.address);
-    this.token = proxiedPAX;
-    this.newToken = await ImplV2.at(proxiedPAX.address);
+    this.token = proxiedV2;
+    this.newToken = await ImplV3.at(proxiedV2.address);
     this.proxy = proxy;
 
     await this.upgrade();
 
     // set the data on the new contracts after the upgrade this time
-    await this.setData(false);
+    await this.setData();
     // check that the data on the contract is the same as what was read before the upgrade
     await this.checkData();
   });
 
   function assertChanges(result, expectedChanges) {
     assert.deepStrictEqual(result, expectedChanges);
-
-    // check that you are only appending
-    result.forEach((change, index) => {
-      if (!change.original || change.original.label != "lawEnforcementRole") {
-        assert.strictEqual(change.action, 'append', "should only append variables to the previous contract's layout!");
-      }
-    })
   }
 
   // see https://github.com/ethereum/solidity/pull/4017#issuecomment-430715555 and https://github.com/zeppelinos/zos/pull/117
@@ -207,95 +197,11 @@ contract('UpgradeToV2 PAX', function (
   // However, solidity does intend to keep it consistent - see https://github.com/ethereum/solidity/issues/4049
   //   also see the documentation on the storage layout pattern: https://github.com/ethereum/solidity/blob/599760b6ab6129797767e6bccfd2a6e842014d80/docs/miscellaneous.rst#layout-of-state-variables-in-storage
   it('has the same storage layout according to the AST-based tool from zeppelin os', function () {
-    const layoutV1 = getStorageLayout(ImplV1Contract, ImplV1);
     const layoutV2 = getStorageLayout(ImplV2Contract);
-    const comparison = compareStorageLayouts(layoutV1, layoutV2);
+    const layoutV3 = getStorageLayout(ImplV3Contract);
+    const comparison = compareStorageLayouts(layoutV2, layoutV3);
 
     // The only changes should be expected additions - note action = 'append'!
-    assertChanges(comparison,
-      [
-        {
-          "action": "rename",
-          "original": {
-            "astId": 1662,
-            "contract": "PAXImplementation",
-            "index": 6,
-            "label": "lawEnforcementRole",
-            "path": "contracts/archive/PAXImplementationV1.sol",
-            "src": "2107:33:2",
-            "type": "t_address",
-          },
-          "updated": {
-            "astId": 2464,
-            "contract": "PAXImplementationV2",
-            "index": 6,
-            "label": "assetProtectionRole",
-            "path": "contracts/archive/PAXImplementationV2.sol",
-            "src": "1454:34:3",
-            "type": "t_address",
-          }
-        },
-        {
-          "action": "append",
-          "updated": {
-            "astId": 2472,
-            "contract": "PAXImplementationV2",
-            "index": 9,
-            "label": "proposedOwner",
-            "path": "contracts/archive/PAXImplementationV2.sol",
-            "src": "1621:28:3",
-            "type": "t_address"
-          }
-        },
-        {
-          "action": "append",
-          "updated": {
-            "astId": 2474,
-            "contract": "PAXImplementationV2",
-            "index": 10,
-            "label": "betaDelegateWhitelister",
-            "path": "contracts/archive/PAXImplementationV2.sol",
-            "src": "1683:38:3",
-            "type": "t_address"
-          }
-        },
-        {
-          "action": "append",
-          "updated": {
-            "astId": 2478,
-            "contract": "PAXImplementationV2",
-            "index": 11,
-            "label": "betaDelegateWhitelist",
-            "path": "contracts/archive/PAXImplementationV2.sol",
-            "src": "1725:55:3",
-            "type": "t_mapping<t_bool>"
-          }
-        },
-        {
-          "action": "append",
-          "updated": {
-            "astId": 2482,
-            "contract": "PAXImplementationV2",
-            "index": 12,
-            "label": "nextSeqs",
-            "path": "contracts/archive/PAXImplementationV2.sol",
-            "src": "1784:45:3",
-            "type": "t_mapping<t_uint256>"
-          }
-        },
-        {
-          "action": "append",
-          "updated": {
-            "astId": 2497,
-            "contract": "PAXImplementationV2",
-            "index": 13,
-            "label": "EIP712_DOMAIN_HASH",
-            "path": "contracts/archive/PAXImplementationV2.sol",
-            "src": "2388:33:3",
-            "type": "t_bytes32"
-          }
-        }
-      ]
-    );
+    assertChanges(comparison, []);
   });
 });

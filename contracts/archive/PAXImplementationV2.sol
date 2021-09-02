@@ -1,37 +1,7 @@
-// File: contracts/archive/PAXImplementationV2.sol
-
 pragma solidity ^0.4.24;
 pragma experimental "v0.5.0";
 
-// File: contracts/zeppelin/SafeMath.sol
-
-/**
- * @title SafeMath
- * @dev Math operations with safety checks that throw on error
- */
-library SafeMath {
-  /**
-   * @dev Subtracts two numbers, reverts on overflow (i.e. if subtrahend is greater than minuend).
-   */
-  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-    require(b <= a);
-    uint256 c = a - b;
-
-    return c;
-  }
-
-  /**
-   * @dev Adds two numbers, reverts on overflow.
-   */
-  function add(uint256 a, uint256 b) internal pure returns (uint256) {
-    uint256 c = a + b;
-    require(c >= a);
-
-    return c;
-  }
-}
-
-// File: contracts/PAXImplementation.sol
+import "../zeppelin/SafeMath.sol";
 
 /**
  * @title PAXImplementationV2
