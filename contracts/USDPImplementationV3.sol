@@ -295,7 +295,7 @@ contract USDPImplementationV3 {
         require(_proposedOwner != address(0), "cannot transfer ownership to address zero");
         require(msg.sender != _proposedOwner, "caller already is owner");
         proposedOwner = _proposedOwner;
-        emit OwnershipTransferProposed(owner, proposedOwner);
+        emit OwnershipTransferProposed(owner, _proposedOwner);
     }
     /**
      * @dev Allows the current owner or proposed owner to cancel transferring control of the contract to a proposedOwner
