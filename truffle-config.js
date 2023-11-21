@@ -2,7 +2,7 @@ var HDWalletProvider = require("@truffle/hdwallet-provider");
 const mnemonic = "<your-mnemonic>";
 const walletChildNum = 0;
 const networkAddressMainnet = "https://mainnet.infura.io/v3/<your-api-key>";
-const networkAddressTestnet = "https://goerli.infura.io/v3/<your-api-key>";
+const networkAddressTestnet = "https://sepolia.infura.io/v3/<your-api-key>";
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -28,11 +28,11 @@ module.exports = {
         return new HDWalletProvider(mnemonic, networkAddressMainnet, walletChildNum)
       },
     },
-    goerli: {
+    sepolia: {
       provider: function() {
         return new HDWalletProvider(mnemonic, networkAddressTestnet, walletChildNum)
       },
-      network_id: 5,
+      network_id: 11155111,
       gas: 4000000
     }
   },
