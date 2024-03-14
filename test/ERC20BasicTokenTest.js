@@ -19,7 +19,7 @@ contract('ERC20Basic USDP', function ([_, admin, recipient, anotherAccount, owne
   describe('basic data', function () {
     it('has getters for the name, symbol, and decimals', async function () {
       const name = await this.token.name();
-      assert.equal(name, "Pax Dollar");
+      assert.equal(name, "USDP USD");
       const symbol = await this.token.symbol();
       assert.equal(symbol, "USDP");
       const decimals = await this.token.decimals();

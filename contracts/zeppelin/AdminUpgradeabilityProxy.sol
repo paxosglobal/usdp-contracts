@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.17;
 
 import './UpgradeabilityProxy.sol';
 
@@ -27,15 +28,11 @@ contract AdminUpgradeabilityProxy is UpgradeabilityProxy {
 
     /**
      * @dev Modifier to check whether the `msg.sender` is the admin.
-     * If it is, it will run the function. Otherwise, it will delegate the call
-     * to the implementation.
+     * If check is false, revert.
      */
     modifier ifAdmin() {
-        if (msg.sender == _admin()) {
-            _;
-        } else {
-            _fallback();
-        }
+        require(msg.sender == _admin(), "Caller is not the contract admin.");
+        _;
     }
 
     /**
@@ -43,17 +40,18 @@ contract AdminUpgradeabilityProxy is UpgradeabilityProxy {
      * It sets the `msg.sender` as the proxy administrator.
      * @param _implementation address of the initial implementation.
      */
-    constructor(address _implementation) UpgradeabilityProxy(_implementation) public {
+    constructor(address _implementation) UpgradeabilityProxy(_implementation) {
         assert(ADMIN_SLOT == keccak256("org.zeppelinos.proxy.admin"));
 
         _setAdmin(msg.sender);
     }
 
     /**
-     * @return The address of the proxy admin.
+     * @return value The address of the proxy admin.
      */
-    function admin() external view ifAdmin returns (address) {
-        return _admin();
+    function admin() external view ifAdmin returns (address value) {
+        value = _admin();
+        return value;
     }
 
     /**
@@ -93,13 +91,14 @@ contract AdminUpgradeabilityProxy is UpgradeabilityProxy {
      * called, as described in
      * https://solidity.readthedocs.io/en/develop/abi-spec.html#function-selector-and-argument-encoding.
      */
-    function upgradeToAndCall(address newImplementation, bytes data) payable external ifAdmin {
+    function upgradeToAndCall(address newImplementation, bytes memory data) payable external ifAdmin{
         _upgradeTo(newImplementation);
-        require(address(this).call.value(msg.value)(data));
+        (bool success,) = address(this).call{value: msg.value}(data);
+        require(success, "upgrade failed");
     }
 
     /**
-     * @return The admin slot.
+     * @return adm The admin slot.
      */
     function _admin() internal view returns (address adm) {
         bytes32 slot = ADMIN_SLOT;
@@ -123,7 +122,7 @@ contract AdminUpgradeabilityProxy is UpgradeabilityProxy {
     /**
      * @dev Only fall back when the sender is not the admin.
      */
-    function _willFallback() internal {
+    function _willFallback() internal override {
         require(msg.sender != _admin(), "Cannot call fallback function from the proxy admin");
         super._willFallback();
     }

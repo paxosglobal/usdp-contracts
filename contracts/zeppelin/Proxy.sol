@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.17;
 
 /**
  * @title Proxy
@@ -7,19 +8,26 @@ pragma solidity ^0.4.24;
  * It defines a fallback function that delegates all calls to the address
  * returned by the abstract _implementation() internal function.
  */
-contract Proxy {
+abstract contract Proxy {
     /**
      * @dev Fallback function.
      * Implemented entirely in `_fallback`.
      */
-    function () payable external {
+    fallback () payable external {
         _fallback();
+    }
+
+    /**
+     * @dev Fallback function for receive, revert as we do not expect ether.
+     */
+    receive () external payable {
+        require(false, "Not expecting ether");
     }
 
     /**
      * @return The Address of the implementation.
      */
-    function _implementation() internal view returns (address);
+    function _implementation() internal view virtual returns (address);
 
     /**
      * @dev Delegates execution to an implementation contract.
@@ -32,19 +40,19 @@ contract Proxy {
         // Copy msg.data. We take full control of memory in this inline assembly
         // block because it will not return to Solidity code. We overwrite the
         // Solidity scratch pad at memory position 0.
-            calldatacopy(0, 0, calldatasize)
+            calldatacopy(0, 0, calldatasize())
 
         // Call the implementation.
         // out and outsize are 0 because we don't know the size yet.
-            let result := delegatecall(gas, implementation, 0, calldatasize, 0, 0)
+            let result := delegatecall(gas(), implementation, 0, calldatasize(), 0, 0)
 
         // Copy the returned data.
-            returndatacopy(0, 0, returndatasize)
+            returndatacopy(0, 0, returndatasize())
 
             switch result
             // delegatecall returns 0 on error.
-            case 0 { revert(0, returndatasize) }
-            default { return(0, returndatasize) }
+            case 0 { revert(0, returndatasize()) }
+            default { return(0, returndatasize()) }
         }
     }
 
@@ -53,7 +61,7 @@ contract Proxy {
      * Can be redefined in derived contracts to add functionality.
      * Redefinitions must call super._willFallback().
      */
-    function _willFallback() internal {
+    function _willFallback() internal virtual {
     }
 
     /**

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.17;
 
 import "../../contracts/USDPImplementationV3.sol";
 

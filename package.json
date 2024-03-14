@@ -1,7 +1,7 @@
 {
-  "name": "pax",
+  "name": "USDP",
   "version": "0.0.1",
-  "description": "Paxos-issued USD-collateralized ERC20 stablecoin",
+  "description": "Hopper-issued USD-collateralized ERC20 stablecoin",
   "main": "truffle.js",
   "directories": {
     "test": "test"
@@ -10,12 +10,12 @@
     "truffle-abi": "cat build/contracts/USDPImplementationV3.json | jq -c .abi > USDP.abi",
     "truffle-bin": "cat build/contracts/USDPImplementationV3.json | jq  -r .bytecode > USDP.bin",
     "compile": "truffle compile",
-    "coverage": "solidity-coverage",
+    "coverage": "truffle run coverage --network coverage",
     "flatten-impl": "truffle-flattener contracts/USDPImplementationV3.sol > ./flattened/USDPImplementationV3.sol",
     "flatten-proxy": "truffle-flattener ./contracts/zeppelin/AdminUpgradeabilityProxy.sol > ./flattened/AdminUpgradeabilityProxy.sol",
     "ganache": "ganache-cli",
     "migrate": "truffle migrate",
-    "solium": "solium -d contracts/ --fix",
+    "solhint": "solhint 'contracts/**/*.sol'",
     "test": "truffle test"
   },
   "repository": {
@@ -28,18 +28,18 @@
     "url": "https://github.com/paxosglobal/pax-contracts/issues"
   },
   "homepage": "https://github.com/paxosglobal/pax-contracts#readme",
-  "dependencies": {},
   "devDependencies": {
     "@openzeppelin/test-helpers": "^0.5.10",
     "@openzeppelin/upgrades": "^2.8.0",
     "@truffle/hdwallet-provider": "^1.2.1",
     "eth-sig-util": "^3.0.0",
     "ganache-cli": "^6.12.2",
-    "solc": "^0.4.24",
+    "solc": "0.8.17",
+    "solhint": "^4.0.0",
     "solidity-coverage": "^0.7.14",
-    "solium": "^1.2.5",
-    "truffle": "^5.1.63",
-    "truffle-flattener": "^1.5.0"
+    "truffle": "5.4.29",
+    "truffle-flattener": "^1.5.0",
+    "chai": "^4.2.0"
   },
   "resolutions": {
     "axios": "^0.21.1",

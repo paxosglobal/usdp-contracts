@@ -187,7 +187,8 @@ contract('USDP', function ([_, admin, newSupplyController, otherAddress, owner])
       });
 
       it('emits a SupplyControllerSet event', async function () {
-        assert.equal(logs.length, 1);
+        assert.equal(logs.length, 1)
+        console.log(logs);
         assert.equal(logs[0].event, 'SupplyControllerSet');
         assert.equal(logs[0].args.oldSupplyController, owner);
         assert.equal(logs[0].args.newSupplyController, newSupplyController);
