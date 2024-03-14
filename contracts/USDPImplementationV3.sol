@@ -7,9 +7,9 @@ import {EIP712} from "./lib/EIP712.sol";
 import {USDPImplementation} from "./USDPImplementation.sol";
 
 /**
- * @title USDPImplementationV3
+ * @title USDPImplementationV4
  * @dev this contract is a Pausable ERC20 token with Burn and Mint
- * controlled by a central SupplyController. By implementing USDPImplementationV3
+ * controlled by a central SupplyController. By implementing USDPImplementationV4
  * this contract also includes external methods for setting
  * a new implementation contract for the Proxy.
  * NOTE: The storage defined here will actually be held in the Proxy
@@ -18,7 +18,7 @@ import {USDPImplementation} from "./USDPImplementation.sol";
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract USDPImplementationV3 is USDPImplementation, EIP2612, EIP3009 {
+contract USDPImplementationV4 is USDPImplementation, EIP2612, EIP3009 {
     constructor() {
         initializeEIP712DomainSeparator();
     }

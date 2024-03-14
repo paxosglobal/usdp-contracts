@@ -5,9 +5,9 @@ pragma solidity 0.8.17;
 import { PaxosBaseAbstract } from "./lib/PaxosBaseAbstract.sol";
 
 /**
- * @title USDPImplementation
+ * @title USDPImplementationV3
  * @dev this contract is a Pausable ERC20 token with Burn and Mint
- * controlled by a central SupplyController. By implementing USDPImplementation
+ * controlled by a central SupplyController. By implementing USDPImplementationV3
  * this contract also includes external methods for setting
  * a new implementation contract for the Proxy.
  * NOTE: The storage defined here will actually be held in the Proxy
@@ -16,7 +16,7 @@ import { PaxosBaseAbstract } from "./lib/PaxosBaseAbstract.sol";
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract USDPImplementation is PaxosBaseAbstract{
+contract USDPImplementationV3 is PaxosBaseAbstract{
 
     /**
      * DATA
@@ -68,7 +68,7 @@ contract USDPImplementation is PaxosBaseAbstract{
     // solhint-disable-next-line var-name-mixedcase
     bytes32 public EIP712_DOMAIN_HASH_DEPRECATED;
     // Storage gap: https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps
-    uint256[25] __gap_USDPImplementation;
+    uint256[25] __gap_USDPImplementationV3;
 
     /**
      * EVENTS
