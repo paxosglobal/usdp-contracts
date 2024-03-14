@@ -1,4 +1,4 @@
-const USDP = artifacts.require('USDPImplementationV3.sol');
+const USDP = artifacts.require('USDPImplementation.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
@@ -101,6 +101,22 @@ contract('USDP', function ([_, admin, assetProtectionRole, otherAddress, freezab
 
         it('reverts when approve spender is the frozen address', async function () {
           await assertRevert(this.token.approve(freezableAddress, approvalAmount, {from: otherAddress}));
+        });
+
+        it('reverts when increase approval is from the frozen address', async function () {
+          await assertRevert(this.token.increaseApproval(otherAddress, approvalAmount, {from: freezableAddress}));
+        });
+
+        it('reverts when increase approve spender is the frozen address', async function () {
+          await assertRevert(this.token.increaseApproval(freezableAddress, approvalAmount, {from: otherAddress}));
+        });
+
+        it('reverts when decrease approval is from the frozen address', async function () {
+          await assertRevert(this.token.decreaseApproval(otherAddress, approvalAmount, {from: freezableAddress}));
+        });
+
+        it('reverts when decrease approval spender is the frozen address', async function () {
+          await assertRevert(this.token.decreaseApproval(freezableAddress, approvalAmount, {from: otherAddress}));
         });
       });
 
@@ -224,6 +240,16 @@ contract('USDP', function ([_, admin, assetProtectionRole, otherAddress, freezab
         await this.token.freeze(freezableAddress, {from: otherAddress});
         const isFrozen = await this.token.isFrozen(freezableAddress, {from: assetProtectionRole});
         assert.equal(isFrozen, true, 'address is frozen');
+      });
+
+      it('revert if AssetProtectionRole is set to the same AssetProtectionRole', async function () {
+        await this.token.setAssetProtectionRole(otherAddress, {from: assetProtectionRole});
+        await assertRevert(this.token.setAssetProtectionRole(otherAddress, {from: otherAddress}));
+      });
+
+      it('revert if AssetProtectionRole is set to the zero address', async function () {
+        await this.token.setAssetProtectionRole(otherAddress, {from: assetProtectionRole});
+        await assertRevert(this.token.setAssetProtectionRole(ZERO_ADDRESS, {from: otherAddress}));
       });
 
       it('prevents old AssetProtectionRole from freezing', async function () {

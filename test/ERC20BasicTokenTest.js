@@ -19,11 +19,11 @@ contract('ERC20Basic USDP', function ([_, admin, recipient, anotherAccount, owne
   describe('basic data', function () {
     it('has getters for the name, symbol, and decimals', async function () {
       const name = await this.token.name();
-      assert.equal(name, "USDP USD");
+      assert.equal(name, "PAX Dollar");
       const symbol = await this.token.symbol();
       assert.equal(symbol, "USDP");
       const decimals = await this.token.decimals();
-      assert.equal(decimals, 18);
+      assert.equal(decimals, 6);
     });
   });
 
@@ -69,7 +69,9 @@ contract('ERC20Basic USDP', function ([_, admin, recipient, anotherAccount, owne
         const amount = 100;
 
         it('transfers the requested amount', async function () {
-          await this.token.transfer(to, amount, {from: owner});
+          const {logs} = await this.token.transfer(to, amount, {from: owner});
+          const recp = await web3.eth.getTransactionReceipt(logs[0].transactionHash);
+          console.log("HARSH", recp.gasUsed);
 
           const senderBalance = await this.token.balanceOf(owner);
           assert.equal(senderBalance, 0);
