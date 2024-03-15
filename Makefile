@@ -23,7 +23,7 @@ ganache:
 
 .PHONY:compile
 compile:
-	@npm run compile
+	@truffle compile
 
 .PHONY:generate-bin
 generate-bin: compile

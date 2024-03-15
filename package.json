@@ -9,9 +9,8 @@
   "scripts": {
     "truffle-abi": "cat build/contracts/USDPImplementationV3.json | jq -c .abi > USDP.abi",
     "truffle-bin": "cat build/contracts/USDPImplementationV3.json | jq  -r .bytecode > USDP.bin",
-    "compile": "truffle compile",
     "coverage": "truffle run coverage --network coverage",
-    "flatten-impl": "truffle-flattener contracts/USDPImplementationV3.sol > ./flattened/USDPImplementationV3.sol",
+    "flatten-impl": "truffle-flattener contracts/USDPImplementationV4.sol > ./flattened/USDPImplementationV4.sol",
     "flatten-proxy": "truffle-flattener ./contracts/zeppelin/AdminUpgradeabilityProxy.sol > ./flattened/AdminUpgradeabilityProxy.sol",
     "ganache": "ganache-cli",
     "migrate": "truffle migrate",

@@ -3,7 +3,7 @@ const {Contracts, getStorageLayout, compareStorageLayouts} = require('@openzeppe
 const ImplBaseContract = Contracts.getFromLocal('USDPImplementationV3');
 const ImplV1Contract = Contracts.getFromLocal('USDPImplementationV4');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
-const ImplBase = artifacts.require('USDPImplementation.sol');
+const ImplBase = artifacts.require('USDPImplementationV3.sol');
 let ImplV1 = artifacts.require('USDPImplementationV4.sol');
 
 const BN = web3.utils.BN;

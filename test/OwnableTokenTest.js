@@ -1,4 +1,4 @@
-const USDP = artifacts.require('USDPImplementation.sol');
+const USDP = artifacts.require('USDPImplementationV4.sol');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 
 const assertRevert = require('./helpers/assertRevert');
