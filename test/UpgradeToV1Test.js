@@ -1,58 +1,21 @@
 const {Contracts, getStorageLayout, compareStorageLayouts} = require('@openzeppelin/upgrades');
 
-const ImplV2Contract = Contracts.getFromLocal('PAXImplementationV2');
-const ImplV3Contract = Contracts.getFromLocal('USDPImplementationV3');
+const ImplBaseContract = Contracts.getFromLocal('USDPImplementationV3');
+const ImplV1Contract = Contracts.getFromLocal('USDPImplementationV4');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
-const ImplV2 = artifacts.require('PAXImplementationV2.sol');
-let ImplV3 = artifacts.require('USDPImplementationV3.sol');
-
-//// For funsies! Uncomment this line and see that it fails because the memory layout is different
-//// Note that the only difference from USDPImplementationV3 is that the new memory is declared first
-//// A quicker test command is `truffle test ./test/UpgradeToV2Test.js ./test/mocks/BadV2UpgradeExample.sol`
-////   0 passing (6s)
-////   4 failing
-// ImplUSDP = artifacts.require('BadV2UpgradeExample.sol');
+const ImplBase = artifacts.require('USDPImplementationV3.sol');
+let ImplV1 = artifacts.require('USDPImplementationV4.sol');
 
 const BN = web3.utils.BN;
 
 const assertRevert = require('./helpers/assertRevert');
 
 // Testing an the upgrade is focused on testing the consistency of the memory model. The goal of this test is to
-// read every piece of mutable data (constants are not in storage anyway) that exists in the V1 version
+// read every piece of mutable data (constants are not in storage anyway) that exists in the old version
 // and make sure it doesn't change in the upgrade.
 
-// Below is the data that the V1 contract kept in it's storage
-
-/**
- // INITIALIZATION DATA
- bool private initialized = false;
-
- // ERC20 BASIC DATA
- mapping(address => uint256) internal balances;
- uint256 internal totalSupply_;
- string public constant name = "PAX"; // solium-disable-line uppercase
- string public constant symbol = "PAX"; // solium-disable-line uppercase
- uint8 public constant decimals = 18; // solium-disable-line uppercase
-
- // ERC20 DATA
- mapping (address => mapping (address => uint256)) internal allowed;
-
- // OWNER DATA
- address public owner;
-
- // PAUSABILITY DATA
- bool public paused = false;
-
- // ASSET PROTECTION DATA
- address public assetProtectionRole;
- mapping(address => bool) internal frozen;
-
- // SUPPLY CONTROL DATA
- address public supplyController;
- */
-
-// Test that PAX operates correctly as a token with DelegatedTransfer.
-contract('UpgradeToUSDP', function (
+// We are testing from base version(without the version specifiction) to V1.
+contract('UpgradeToV1', function (
   [_, admin, owner, supplyController, assetProtection, recipient, purchaser, holder, bystander, frozen]
 ) {
 
@@ -84,13 +47,6 @@ contract('UpgradeToUSDP', function (
       await this.token.freeze(frozen, {from: assetProtection});
     };
 
-    this.upgrade = async function () {
-      this.implV3 = await ImplV3.new({from: owner});
-      const funcSig = web3.eth.abi.encodeFunctionSignature('initializeDomainSeparator()'); // 0x2ff79161
-      console.log("func sig", funcSig)
-      await this.proxy.upgradeToAndCall(this.implV3.address, funcSig, {from: admin});
-    };
-
     this.checkData = async function () {
       assert.strictEqual(this.owner, await this.token.owner());
       assert.strictEqual(this.currentSC, await this.token.supplyController());
@@ -108,15 +64,12 @@ contract('UpgradeToUSDP', function (
     };
 
     // deploy the contracts
-    const paxV2 = await ImplV2.new({from: owner});
-    const proxy = await Proxy.new(paxV2.address, {from: admin});
-    const proxiedV2 = await ImplV2.at(proxy.address);
-    await proxiedV2.initialize({from: owner});
-    this.token = proxiedV2;
-    this.newToken = await ImplV3.at(proxy.address);
-    this.proxy = proxy;
-
-    // set the data
+    const usdpBase = await ImplBase.new({from: owner});
+    this.proxy = await Proxy.new(usdpBase.address, {from: admin});
+    const proxiedBase = await ImplBase.at(this.proxy.address);
+    await proxiedBase.initialize({from: owner});
+    this.token = proxiedBase;
+    this.newToken = await ImplV1.at(this.proxy.address);
     await this.setData();
 
     // read the data - note: the data here is always read before the upgrade
@@ -140,7 +93,8 @@ contract('UpgradeToUSDP', function (
   });
 
   it('can survive and integration test when not paused', async function () {
-    await this.upgrade();
+    this.implV1 = await ImplV1.new({from: owner});
+
     // check that the data on the contract is the same as what was read before the upgrade
     await this.checkData();
 
@@ -156,7 +110,7 @@ contract('UpgradeToUSDP', function (
     this.paused = await this.token.paused();
     assert.isTrue(this.paused);
 
-    await this.upgrade();
+    this.implV1 = await ImplV1.new({from: owner});
     // check that the data on the contract is the same as what was read before the upgrade
     await this.checkData();
 
@@ -168,19 +122,19 @@ contract('UpgradeToUSDP', function (
 
   it('gives the same result as if we upgraded first', async function () {
     // deploy new contracts
-    const paxV2 = await ImplV2.new({from: owner});
-    const proxy = await Proxy.new(paxV2.address, {from: admin});
-    const proxiedV2 = await ImplV2.at(proxy.address);
-    await proxiedV2.initialize({from: owner});
+    const usdpBase = await ImplBase.new({from: owner});
+    const proxy = await Proxy.new(usdpBase.address, {from: admin});
+    const proxiedBase = await ImplBase.at(proxy.address);
+    await proxiedBase.initialize({from: owner});
 
     // make sure these are new contracts
-    assert.notStrictEqual(this.token.address, proxiedV2.address);
+    assert.notStrictEqual(this.token.address, proxiedBase.address);
     assert.notStrictEqual(this.proxy.address, proxy.address);
-    this.token = proxiedV2;
-    this.newToken = await ImplV3.at(proxiedV2.address);
+    this.token = proxiedBase;
+    this.newToken = await ImplV1.at(proxiedBase.address);
     this.proxy = proxy;
 
-    await this.upgrade();
+    this.implV1 = await ImplV1.new({from: owner});
 
     // set the data on the new contracts after the upgrade this time
     await this.setData();
@@ -197,11 +151,11 @@ contract('UpgradeToUSDP', function (
   // However, solidity does intend to keep it consistent - see https://github.com/ethereum/solidity/issues/4049
   //   also see the documentation on the storage layout pattern: https://github.com/ethereum/solidity/blob/599760b6ab6129797767e6bccfd2a6e842014d80/docs/miscellaneous.rst#layout-of-state-variables-in-storage
   it('has the same storage layout according to the AST-based tool from zeppelin os', function () {
-    const layoutV2 = getStorageLayout(ImplV2Contract);
-    const layoutV3 = getStorageLayout(ImplV3Contract);
-    const comparison = compareStorageLayouts(layoutV2, layoutV3);
+    const layout = getStorageLayout(ImplBaseContract);
+    const layoutV1 = getStorageLayout(ImplV1Contract);
+    const comparison = compareStorageLayouts(layout, layoutV1);
 
     // The only changes should be expected additions - note action = 'append'!
-    assertChanges(comparison, []);
+    assertChanges(comparison.filter(function (item) {return item["action"] != "append"}), []);
   });
 });

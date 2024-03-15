@@ -1,4 +1,5 @@
-pragma solidity ^0.4.24;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.17;
 
 import './Proxy.sol';
 import './AddressUtils.sol';
@@ -25,19 +26,19 @@ contract UpgradeabilityProxy is Proxy {
 
     /**
      * @dev Contract constructor.
-     * @param _implementation Address of the initial implementation.
+     * @param implementation Address of the initial implementation.
      */
-    constructor(address _implementation) public {
+    constructor(address implementation) {
         assert(IMPLEMENTATION_SLOT == keccak256("org.zeppelinos.proxy.implementation"));
 
-        _setImplementation(_implementation);
+        _setImplementation(implementation);
     }
 
     /**
      * @dev Returns the current implementation.
-     * @return Address of the current implementation
+     * @return impl Address of the current implementation
      */
-    function _implementation() internal view returns (address impl) {
+    function _implementation() internal view override returns (address impl) {
         bytes32 slot = IMPLEMENTATION_SLOT;
         assembly {
             impl := sload(slot)

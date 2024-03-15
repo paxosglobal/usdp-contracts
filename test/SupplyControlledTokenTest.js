@@ -187,10 +187,10 @@ contract('USDP', function ([_, admin, newSupplyController, otherAddress, owner])
       });
 
       it('emits a SupplyControllerSet event', async function () {
-        assert.equal(logs.length, 1);
-        assert.equal(logs[0].event, 'SupplyControllerSet');
-        assert.equal(logs[0].args.oldSupplyController, owner);
-        assert.equal(logs[0].args.newSupplyController, newSupplyController);
+        assert.equal(logs.length, 2)
+        assert.equal(logs[1].event, 'SupplyControllerSet');
+        assert.equal(logs[1].args.oldSupplyController, owner);
+        assert.equal(logs[1].args.newSupplyController, newSupplyController);
       });
     });
   });
