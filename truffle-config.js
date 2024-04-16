@@ -35,7 +35,7 @@ module.exports = {
         return new HDWalletProvider(mnemonic, networkAddressMainnet, walletChildNum)
       }
     },
-    goerli: {
+    sepolia: {
       provider: function() {
         return new HDWalletProvider(mnemonic, networkAddressTestnet, walletChildNum)
       },

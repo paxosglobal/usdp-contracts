@@ -30,7 +30,7 @@ contract USDPImplementationV3 is PaxosBaseAbstract{
     uint256 internal totalSupply_;
     string public constant name = "Pax Dollar"; // solhint-disable-line const-name-snakecase
     string public constant symbol = "USDP"; // solhint-disable-line const-name-snakecase
-    uint8 public constant decimals = 6; // solhint-disable-line const-name-snakecase
+    uint8 public constant decimals = 18; // solhint-disable-line const-name-snakecase
 
     // ERC20 DATA
     mapping(address => mapping(address => uint256)) internal allowed;

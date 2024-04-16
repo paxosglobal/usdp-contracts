@@ -520,7 +520,7 @@ contract USDPImplementationV3 is PaxosBaseAbstract{
     uint256 internal totalSupply_;
     string public constant name = "Pax Dollar"; // solhint-disable-line const-name-snakecase
     string public constant symbol = "USDP"; // solhint-disable-line const-name-snakecase
-    uint8 public constant decimals = 6; // solhint-disable-line const-name-snakecase
+    uint8 public constant decimals = 18; // solhint-disable-line const-name-snakecase
 
     // ERC20 DATA
     mapping(address => mapping(address => uint256)) internal allowed;
@@ -1077,6 +1077,6 @@ contract USDPImplementationV4 is USDPImplementationV3, EIP2612, EIP3009 {
      * @dev To be called when upgrading the contract using upgradeAndCall and during initialization of contract.
      */
     function initializeEIP712DomainSeparator() public {
-        DOMAIN_SEPARATOR = EIP712.makeDomainSeparator("XYZ", "1");
+        DOMAIN_SEPARATOR = EIP712.makeDomainSeparator("USDP", "1");
     }
 }

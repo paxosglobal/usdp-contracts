@@ -23,7 +23,7 @@ contract('ERC20Basic USDP', function ([_, admin, recipient, anotherAccount, owne
       const symbol = await this.token.symbol();
       assert.equal(symbol, "USDP");
       const decimals = await this.token.decimals();
-      assert.equal(decimals, 6);
+      assert.equal(decimals, 18);
     });
   });
 

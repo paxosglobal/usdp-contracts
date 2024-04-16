@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import {EIP2612} from "./lib/EIP2612.sol";
-import {EIP3009} from "./lib/EIP3009.sol";
-import {EIP712} from "./lib/EIP712.sol";
-import {USDPImplementationV3} from "./USDPImplementationV3.sol";
+import { EIP2612 } from "./lib/EIP2612.sol";
+import { EIP3009 } from "./lib/EIP3009.sol";
+import { EIP712 } from "./lib/EIP712.sol";
+import { USDPImplementationV3 } from "./USDPImplementationV3.sol";
 
 /**
  * @title USDPImplementationV4
@@ -27,6 +27,6 @@ contract USDPImplementationV4 is USDPImplementationV3, EIP2612, EIP3009 {
      * @dev To be called when upgrading the contract using upgradeAndCall and during initialization of contract.
      */
     function initializeEIP712DomainSeparator() public {
-        DOMAIN_SEPARATOR = EIP712.makeDomainSeparator("XYZ", "1");
+        DOMAIN_SEPARATOR = EIP712.makeDomainSeparator("USDP", "1");
     }
 }

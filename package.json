@@ -1,7 +1,7 @@
 {
   "name": "USDP",
   "version": "0.0.1",
-  "description": "Hopper-issued USD-collateralized ERC20 stablecoin",
+  "description": "Paxos-issued USD-collateralized ERC20 stablecoin",
   "main": "truffle.js",
   "directories": {
     "test": "test"
