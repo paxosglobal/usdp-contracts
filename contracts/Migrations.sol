@@ -1,18 +1,18 @@
-pragma solidity ^0.4.24;
-pragma experimental "v0.5.0";
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.17;
 
 
 // This is used for truffle migrations / testing.
 
 contract Migrations {
-    uint public last_completed_migration;
+    uint256 public last_completed_migration; // solhint-disable-line var-name-mixedcase
 
-    function setCompleted(uint completed) public {
+    function setCompleted(uint256 completed) public {
         last_completed_migration = completed;
     }
 
-    function upgrade(address new_address) public {
-        Migrations upgraded = Migrations(new_address);
+    function upgrade(address newAddress) public {
+        Migrations upgraded = Migrations(newAddress);
         upgraded.setCompleted(last_completed_migration);
     }
 }

@@ -1,5 +1,5 @@
 .PHONY:all
-all: fmt test-contracts compile flatten generate-bin test-contracts-coverage
+all: setup fmt compile flatten generate-bin test-contracts-coverage
 
 .PHONY:clean
 clean:
@@ -9,9 +9,13 @@ clean:
 # Code
 ##################
 
+.PHONY:setup
+setup:
+	yarn install --ignore-optional
+
 .PHONY:fmt
 fmt:
-	@npm run solium
+	@npm run solhint
 
 .PHONY:ganache
 ganache:
@@ -19,7 +23,7 @@ ganache:
 
 .PHONY:compile
 compile:
-	@npm run compile
+	@truffle compile
 
 .PHONY:generate-bin
 generate-bin: compile

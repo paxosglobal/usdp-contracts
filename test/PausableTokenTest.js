@@ -28,7 +28,7 @@ contract('Pausable USDP', function ([_, admin, anotherAccount, owner]) {
     const {logs} = await this.token.pause({from: owner});
     const paused = await this.token.paused();
     assert.equal(paused, true);
-    await assertRevert(this.token.transfer(anotherAccount, amount, {from: owner}));
+    await assertRevert(this.token.transfer(anotherAccount, amount, {from: owner}), "whenNotPaused");
     const balance = await this.token.balanceOf(owner);
     assert.equal(100, balance);
 
@@ -40,6 +40,8 @@ contract('Pausable USDP', function ([_, admin, anotherAccount, owner]) {
   it('cannot approve/transferFrom in pause', async function () {
     await this.token.approve(anotherAccount, amount, {from: owner});
     const {logs} = await this.token.pause({from: owner});
+    const paused = await this.token.paused();
+    assert.equal(paused, true);
     await assertRevert(this.token.approve(anotherAccount, 2 * amount, {from: owner}));
     await assertRevert(this.token.transferFrom(owner, anotherAccount, amount, {from: anotherAccount}));
   });

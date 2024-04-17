@@ -1,14 +1,13 @@
-pragma solidity ^0.4.24;
-pragma experimental "v0.5.0";
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.17;
 
 
-import "./zeppelin/SafeMath.sol";
-
+import { PaxosBaseAbstract } from "./lib/PaxosBaseAbstract.sol";
 
 /**
  * @title USDPImplementationV3
  * @dev this contract is a Pausable ERC20 token with Burn and Mint
- * controlled by a central SupplyController. By implementing USDPImplementation
+ * controlled by a central SupplyController. By implementing USDPImplementationV3
  * this contract also includes external methods for setting
  * a new implementation contract for the Proxy.
  * NOTE: The storage defined here will actually be held in the Proxy
@@ -17,27 +16,21 @@ import "./zeppelin/SafeMath.sol";
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract USDPImplementationV3 {
-
-    /**
-     * MATH
-     */
-
-    using SafeMath for uint256;
+contract USDPImplementationV3 is PaxosBaseAbstract{
 
     /**
      * DATA
      */
 
     // INITIALIZATION DATA
-    bool private initialized = false;
+    bool private initialized;
 
     // ERC20 BASIC DATA
     mapping(address => uint256) internal balances;
     uint256 internal totalSupply_;
-    string public constant name = "Pax Dollar"; // solium-disable-line
-    string public constant symbol = "USDP"; // solium-disable-line uppercase
-    uint8 public constant decimals = 18; // solium-disable-line uppercase
+    string public constant name = "Pax Dollar"; // solhint-disable-line const-name-snakecase
+    string public constant symbol = "USDP"; // solhint-disable-line const-name-snakecase
+    uint8 public constant decimals = 18; // solhint-disable-line const-name-snakecase
 
     // ERC20 DATA
     mapping(address => mapping(address => uint256)) internal allowed;
@@ -46,7 +39,7 @@ contract USDPImplementationV3 {
     address public owner;
 
     // PAUSABILITY DATA
-    bool public paused = false;
+    bool public paused;
 
     // ASSET PROTECTION DATA
     address public assetProtectionRole;
@@ -58,22 +51,24 @@ contract USDPImplementationV3 {
     // OWNER DATA PART 2
     address public proposedOwner;
 
-    // DELEGATED TRANSFER DATA
-    address public betaDelegateWhitelister;
-    mapping(address => bool) internal betaDelegateWhitelist;
-    mapping(address => uint256) internal nextSeqs;
+    // DELEGATED TRANSFER DATA - DEPRECATED
+    address public betaDelegateWhitelisterDeprecated;
+    mapping(address => bool) internal betaDelegateWhitelistDeprecated;
+    mapping(address => uint256) internal nextSeqsDeprecated;
     // EIP191 header for EIP712 prefix
-    string constant internal EIP191_HEADER = "\x19\x01";
+    string constant internal EIP191_HEADER_DEPRECATED = "\x19\x01";
     // Hash of the EIP712 Domain Separator Schema
-    bytes32 constant internal EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH = keccak256(
+    bytes32 constant internal EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH_DEPRECATED = keccak256(
         "EIP712Domain(string name,address verifyingContract)"
     );
-    bytes32 constant internal EIP712_DELEGATED_TRANSFER_SCHEMA_HASH = keccak256(
+    bytes32 constant internal EIP712_DELEGATED_TRANSFER_SCHEMA_HASH_DEPRECATED = keccak256(
         "BetaDelegatedTransfer(address to,uint256 value,uint256 fee,uint256 seq,uint256 deadline)"
     );
     // Hash of the EIP712 Domain Separator data
     // solhint-disable-next-line var-name-mixedcase
-    bytes32 public EIP712_DOMAIN_HASH;
+    bytes32 public EIP712_DOMAIN_HASH_DEPRECATED;
+    // Storage gap: https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps
+    uint256[25] __gap_USDPImplementationV3;
 
     /**
      * EVENTS
@@ -123,17 +118,6 @@ contract USDPImplementationV3 {
         address indexed newSupplyController
     );
 
-    // DELEGATED TRANSFER EVENTS
-    event BetaDelegatedTransfer(
-        address indexed from, address indexed to, uint256 value, uint256 seq, uint256 fee
-    );
-    event BetaDelegateWhitelisterSet(
-        address indexed oldWhitelister,
-        address indexed newWhitelister
-    );
-    event BetaDelegateWhitelisted(address indexed newDelegate);
-    event BetaDelegateUnwhitelisted(address indexed oldDelegate);
-
     /**
      * FUNCTIONALITY
      */
@@ -146,7 +130,7 @@ contract USDPImplementationV3 {
      * memory model of the Implementation contract.
      */
     function initialize() public {
-        require(!initialized, "already initialized");
+        require(!initialized, "MANDATORY VERIFICATION REQUIRED: The proxy has already been initialized, verify the owner and supply controller addresses.");
         owner = msg.sender;
         assetProtectionRole = address(0);
         totalSupply_ = 0;
@@ -160,24 +144,9 @@ contract USDPImplementationV3 {
      * contract might lead to misleading state
      * for users who accidentally interact with it.
      */
-    constructor() public {
+    constructor() {
         initialize();
         pause();
-        // Added in V2
-        initializeDomainSeparator();
-    }
-
-    /**
-     * @dev To be called when upgrading the contract using upgradeAndCall to add delegated transfers
-     */
-    function initializeDomainSeparator() public {
-        // hash the name context with the contract address
-        EIP712_DOMAIN_HASH = keccak256(abi.encodePacked(// solium-disable-line
-                EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH,
-                keccak256(bytes(name)),
-                bytes32(address(this))
-            ));
-        proposedOwner = address(0);
     }
 
     // ERC20 BASIC FUNCTIONALITY
@@ -191,18 +160,12 @@ contract USDPImplementationV3 {
 
     /**
     * @dev Transfer token to a specified address from msg.sender
-    * Note: the use of Safemath ensures that _value is nonnegative.
     * @param _to The address to transfer to.
     * @param _value The amount to be transferred.
+    * @return True if successful
     */
     function transfer(address _to, uint256 _value) public whenNotPaused returns (bool) {
-        require(_to != address(0), "cannot transfer to address zero");
-        require(!frozen[_to] && !frozen[msg.sender], "address frozen");
-        require(_value <= balances[msg.sender], "insufficient funds");
-
-        balances[msg.sender] = balances[msg.sender].sub(_value);
-        balances[_to] = balances[_to].add(_value);
-        emit Transfer(msg.sender, _to, _value);
+        _transfer(msg.sender, _to, _value);
         return true;
     }
 
@@ -222,6 +185,7 @@ contract USDPImplementationV3 {
      * @param _from address The address which you want to send tokens from
      * @param _to address The address which you want to transfer to
      * @param _value uint256 the amount of tokens to be transferred
+     * @return True if successful
      */
     function transferFrom(
         address _from,
@@ -232,15 +196,33 @@ contract USDPImplementationV3 {
     whenNotPaused
     returns (bool)
     {
-        require(_to != address(0), "cannot transfer to address zero");
-        require(!frozen[_to] && !frozen[_from] && !frozen[msg.sender], "address frozen");
-        require(_value <= balances[_from], "insufficient funds");
-        require(_value <= allowed[_from][msg.sender], "insufficient allowance");
+        require(!frozen[msg.sender], "sender address frozen");
+        _transferFromAllowance(_from, _to, _value);
+        return true;
+    }
 
-        balances[_from] = balances[_from].sub(_value);
-        balances[_to] = balances[_to].add(_value);
-        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
-        emit Transfer(_from, _to, _value);
+    /**
+     * @dev Transfer tokens from one set of address to another in a single transaction.
+     * @param _from addres[] The addresses which you want to send tokens from
+     * @param _to address[] The addresses which you want to transfer to
+     * @param _value uint256[] The amounts of tokens to be transferred
+     * @return True if successful
+     */
+    function transferFromBatch(
+        address[] calldata _from,
+        address[] calldata _to,
+        uint256[] calldata _value
+    )
+    public
+    whenNotPaused
+    returns (bool)
+    {
+        // Validate length of each parameter with "_from" argument to make sure lengths of all input arguments are the same.
+        require(_to.length == _from.length && _value.length == _from.length , "argument's length mismatch");
+        require(!frozen[msg.sender], "sender address frozen");
+        for (uint16 i = 0; i < _from.length; i++) {
+            _transferFromAllowance(_from[i], _to[i], _value[i]);   
+        }
         return true;
     }
 
@@ -252,11 +234,50 @@ contract USDPImplementationV3 {
      * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
      * @param _spender The address which will spend the funds.
      * @param _value The amount of tokens to be spent.
+     * @return True if successful
      */
     function approve(address _spender, uint256 _value) public whenNotPaused returns (bool) {
         require(!frozen[_spender] && !frozen[msg.sender], "address frozen");
         allowed[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
+        return true;
+    }
+
+    /**
+     * @dev Increase the amount of tokens that an owner allowed to a spender.
+     *
+     * To increment allowed value is better to use this function to avoid 2 calls (and wait until the first transaction
+     * is mined) instead of approve.
+     * @param _spender The address which will spend the funds.
+     * @param _addedValue The amount of tokens to increase the allowance by.
+     * @return True if successful
+     */
+    function increaseApproval(address _spender, uint256 _addedValue) public whenNotPaused returns (bool) {
+        require(!frozen[_spender] && !frozen[msg.sender], "address frozen");
+        require(_addedValue != 0, "value cannot be zero");
+        allowed[msg.sender][_spender] += _addedValue;
+        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+        return true;
+    }
+
+    /**
+     * @dev Decrease the amount of tokens that an owner allowed to a spender.
+     *
+     * To decrement allowed value is better to use this function to avoid 2 calls (and wait until the first transaction
+     * is mined) instead of approve.
+     * @param _spender The address which will spend the funds.
+     * @param _subtractedValue The amount of tokens to decrease the allowance by.
+     * @return True if successful
+     */
+    function decreaseApproval(address _spender, uint256 _subtractedValue) public whenNotPaused returns (bool) {
+        require(!frozen[_spender] && !frozen[msg.sender], "address frozen");
+        require(_subtractedValue != 0, "value cannot be zero");
+        if (_subtractedValue > allowed[msg.sender][_spender]) {
+            allowed[msg.sender][_spender] = 0;
+        } else {
+            allowed[msg.sender][_spender] -= _subtractedValue;
+        }
+        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
 
@@ -288,11 +309,11 @@ contract USDPImplementationV3 {
     }
 
     /**
-         * @dev Allows the current owner to begin transferring control of the contract to a proposedOwner
-         * @param _proposedOwner The address to transfer ownership to.
-         */
+     * @dev Allows the current owner to begin transferring control of the contract to a proposedOwner
+     * @param _proposedOwner The address to transfer ownership to.
+     */
     function proposeOwner(address _proposedOwner) public onlyOwner {
-        require(_proposedOwner != address(0), "cannot transfer ownership to address zero");
+        require(_proposedOwner != address(0), "cannot transfer ownership to zero address");
         require(msg.sender != _proposedOwner, "caller already is owner");
         proposedOwner = _proposedOwner;
         emit OwnershipTransferProposed(owner, proposedOwner);
@@ -324,20 +345,19 @@ contract USDPImplementationV3 {
      * Note: this is not affected by freeze constraints.
      */
     function reclaimUSDP() external onlyOwner {
-        uint256 _balance = balances[this];
-        balances[this] = 0;
-        balances[owner] = balances[owner].add(_balance);
-        emit Transfer(this, owner, _balance);
+        uint256 _balance = balances[address(this)];
+        balances[address(this)] = 0;
+        balances[owner] += _balance;
+        emit Transfer(address(this), owner, _balance);
     }
 
     // PAUSABILITY FUNCTIONALITY
 
     /**
-     * @dev Modifier to make a function callable only when the contract is not paused.
+     * @dev Check if contract is paused.
      */
-    modifier whenNotPaused() {
-        require(!paused, "whenNotPaused");
-        _;
+    function isPaused() internal view override returns (bool) {
+        return paused;
     }
 
     /**
@@ -366,6 +386,8 @@ contract USDPImplementationV3 {
      */
     function setAssetProtectionRole(address _newAssetProtectionRole) public {
         require(msg.sender == assetProtectionRole || msg.sender == owner, "only assetProtectionRole or Owner");
+        require(_newAssetProtectionRole != address(0), "cannot use zero address");
+        require(assetProtectionRole != _newAssetProtectionRole, "new address is same as a current one");
         emit AssetProtectionRoleSet(assetProtectionRole, _newAssetProtectionRole);
         assetProtectionRole = _newAssetProtectionRole;
     }
@@ -396,18 +418,26 @@ contract USDPImplementationV3 {
     }
 
     /**
-     * @dev Wipes the balance of a frozen address, burning the tokens
-     * and setting the approval to zero.
+     * @dev Wipes the balance of a frozen address, and burns the tokens.
      * @param _addr The new frozen address to wipe.
      */
     function wipeFrozenAddress(address _addr) public onlyAssetProtectionRole {
         require(frozen[_addr], "address is not frozen");
         uint256 _balance = balances[_addr];
         balances[_addr] = 0;
-        totalSupply_ = totalSupply_.sub(_balance);
+        totalSupply_ -= _balance;
         emit FrozenAddressWiped(_addr);
         emit SupplyDecreased(_addr, _balance);
         emit Transfer(_addr, address(0), _balance);
+    }
+
+    /**
+    * @dev Internal function to check whether the address is currently frozen.
+    * @param _addr The address to check if frozen.
+    * @return A bool representing whether the given address is frozen.
+    */
+    function isAddrFrozen(address _addr) internal view override returns (bool) {
+        return frozen[_addr];
     }
 
     /**
@@ -416,18 +446,22 @@ contract USDPImplementationV3 {
     * @return A bool representing whether the given address is frozen.
     */
     function isFrozen(address _addr) public view returns (bool) {
-        return frozen[_addr];
+        return isAddrFrozen(_addr);
     }
 
     // SUPPLY CONTROL FUNCTIONALITY
 
     /**
-     * @dev Sets a new supply controller address.
+     * @dev Sets a new supply controller address and transfer supplyController tokens to _newSupplyController.
      * @param _newSupplyController The address allowed to burn/mint tokens to control supply.
      */
     function setSupplyController(address _newSupplyController) public {
         require(msg.sender == supplyController || msg.sender == owner, "only SupplyController or Owner");
-        require(_newSupplyController != address(0), "cannot set supply controller to address zero");
+        require(_newSupplyController != address(0), "cannot set supply controller to zero address");
+        require(supplyController != _newSupplyController, "new address is same as a current one");
+        emit Transfer(supplyController, _newSupplyController, balances[supplyController]);
+        balances[_newSupplyController] += balances[supplyController];
+        balances[supplyController] = 0;
         emit SupplyControllerSet(supplyController, _newSupplyController);
         supplyController = _newSupplyController;
     }
@@ -440,11 +474,11 @@ contract USDPImplementationV3 {
     /**
      * @dev Increases the total supply by minting the specified number of tokens to the supply controller account.
      * @param _value The number of tokens to add.
-     * @return A boolean that indicates if the operation was successful.
+     * @return success A boolean that indicates if the operation was successful.
      */
     function increaseSupply(uint256 _value) public onlySupplyController returns (bool success) {
-        totalSupply_ = totalSupply_.add(_value);
-        balances[supplyController] = balances[supplyController].add(_value);
+        totalSupply_ += _value;
+        balances[supplyController] += _value;
         emit SupplyIncreased(supplyController, _value);
         emit Transfer(address(0), supplyController, _value);
         return true;
@@ -453,180 +487,73 @@ contract USDPImplementationV3 {
     /**
      * @dev Decreases the total supply by burning the specified number of tokens from the supply controller account.
      * @param _value The number of tokens to remove.
-     * @return A boolean that indicates if the operation was successful.
+     * @return success A boolean that indicates if the operation was successful.
      */
     function decreaseSupply(uint256 _value) public onlySupplyController returns (bool success) {
         require(_value <= balances[supplyController], "not enough supply");
-        balances[supplyController] = balances[supplyController].sub(_value);
-        totalSupply_ = totalSupply_.sub(_value);
+        balances[supplyController] -= _value;
+        totalSupply_ -= _value;
         emit SupplyDecreased(supplyController, _value);
         emit Transfer(supplyController, address(0), _value);
         return true;
     }
 
-    // DELEGATED TRANSFER FUNCTIONALITY
-
     /**
-     * @dev returns the next seq for a target address.
-     * The transactor must submit nextSeqOf(transactor) in the next transaction for it to be valid.
-     * Note: that the seq context is specific to this smart contract.
-     * @param target The target address.
-     * @return the seq.
+     * @dev Internal function to transfer balances _from => _to.
+     * Internal to the contract - see transferFrom and transferFromBatch.
+     * @param _from address The address which you want to send tokens from
+     * @param _to address The address which you want to transfer to
+     * @param _value uint256 the amount of tokens to be transferred
      */
-    //
-    function nextSeqOf(address target) public view returns (uint256) {
-        return nextSeqs[target];
+    function _transferFromAllowance(
+        address _from,
+        address _to,
+        uint256 _value
+    )
+    internal
+    {
+        require(_value <= allowed[_from][msg.sender], "insufficient allowance");
+        _transfer(_from, _to, _value);
+        allowed[_from][msg.sender] -= _value;
     }
 
     /**
-     * @dev Performs a transfer on behalf of the from address, identified by its signature on the delegatedTransfer msg.
-     * Splits a signature byte array into r,s,v for convenience.
-     * @param sig the signature of the delgatedTransfer msg.
-     * @param to The address to transfer to.
-     * @param value The amount to be transferred.
-     * @param fee an optional ERC20 fee paid to the executor of betaDelegatedTransfer by the from address.
-     * @param seq a sequencing number included by the from address specific to this contract to protect from replays.
-     * @param deadline a block number after which the pre-signed transaction has expired.
-     * @return A boolean that indicates if the operation was successful.
+     * @dev Set allowance for a given spender, of a given owner.
+     * @param _owner address The address which owns the funds.
+     * @param _spender address The address which will spend the funds.
+     * @param _value uint256 The amount of tokens to increase the allowance by.
      */
-    function betaDelegatedTransfer(
-        bytes sig, address to, uint256 value, uint256 fee, uint256 seq, uint256 deadline
-    ) public returns (bool) {
-        require(sig.length == 65, "signature should have length 65");
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-        assembly {
-            r := mload(add(sig, 32))
-            s := mload(add(sig, 64))
-            v := byte(0, mload(add(sig, 96)))
-        }
-        require(_betaDelegatedTransfer(r, s, v, to, value, fee, seq, deadline), "failed transfer");
-        return true;
+    function _approve(
+        address _owner,
+        address _spender,
+        uint256 _value
+    ) internal override {
+        require(_owner != address(0) && _spender != address(0), "ERC20: approve from is zero address");
+        require(!frozen[_spender] && !frozen[_owner], "address frozen");
+
+        allowed[_owner][_spender] = _value;
+        emit Approval(_owner, _spender, _value);
     }
 
     /**
-     * @dev Performs a transfer on behalf of the from address, identified by its signature on the betaDelegatedTransfer msg.
-     * Note: both the delegate and transactor sign in the fees. The transactor, however,
-     * has no control over the gas price, and therefore no control over the transaction time.
-     * Beta prefix chosen to avoid a name clash with an emerging standard in ERC865 or elsewhere.
-     * Internal to the contract - see betaDelegatedTransfer and betaDelegatedTransferBatch.
-     * @param r the r signature of the delgatedTransfer msg.
-     * @param s the s signature of the delgatedTransfer msg.
-     * @param v the v signature of the delgatedTransfer msg.
-     * @param to The address to transfer to.
-     * @param value The amount to be transferred.
-     * @param fee an optional ERC20 fee paid to the delegate of betaDelegatedTransfer by the from address.
-     * @param seq a sequencing number included by the from address specific to this contract to protect from replays.
-     * @param deadline a block number after which the pre-signed transaction has expired.
-     * @return A boolean that indicates if the operation was successful.
+     * @dev Transfer `value` amount `_from` => `_to`.
+     * Internal to the contract - see transferFromAllowance and EIP3009.sol:_transferWithAuthorization.
+     * @param _from address The address which you want to send tokens from
+     * @param _to address The address which you want to send tokens to
+     * @param _value uint256 the amount of tokens to be transferred
      */
-    function _betaDelegatedTransfer(
-        bytes32 r, bytes32 s, uint8 v, address to, uint256 value, uint256 fee, uint256 seq, uint256 deadline
-    ) internal whenNotPaused returns (bool) {
-        require(betaDelegateWhitelist[msg.sender], "Beta feature only accepts whitelisted delegates");
-        require(value > 0 || fee > 0, "cannot transfer zero tokens with zero fee");
-        require(block.number <= deadline, "transaction expired");
-        // prevent sig malleability from ecrecover()
-        require(uint256(s) <= 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0, "signature incorrect");
-        require(v == 27 || v == 28, "signature incorrect");
+    function _transfer(
+        address _from,
+        address _to,
+        uint256 _value
+    ) internal override {
+        require(_to != address(0) && _from != address(0), "cannot transfer to/from address zero");
+        require(!frozen[_to] && !frozen[_from], "address frozen");
+        require(_value <= balances[_from], "insufficient funds");
 
-        // EIP712 scheme: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
-        bytes32 delegatedTransferHash = keccak256(abi.encodePacked(// solium-disable-line
-                EIP712_DELEGATED_TRANSFER_SCHEMA_HASH, bytes32(to), value, fee, seq, deadline
-            ));
-        bytes32 hash = keccak256(abi.encodePacked(EIP191_HEADER, EIP712_DOMAIN_HASH, delegatedTransferHash));
-        address _from = ecrecover(hash, v, r, s);
-
-        require(_from != address(0), "error determining from address from signature");
-        require(to != address(0), "canno use address zero");
-        require(!frozen[to] && !frozen[_from] && !frozen[msg.sender], "address frozen");
-        require(value.add(fee) <= balances[_from], "insufficient fund");
-        require(nextSeqs[_from] == seq, "incorrect seq");
-
-        nextSeqs[_from] = nextSeqs[_from].add(1);
-        balances[_from] = balances[_from].sub(value.add(fee));
-        if (fee != 0) {
-            balances[msg.sender] = balances[msg.sender].add(fee);
-            emit Transfer(_from, msg.sender, fee);
-        }
-        balances[to] = balances[to].add(value);
-        emit Transfer(_from, to, value);
-
-        emit BetaDelegatedTransfer(_from, to, value, seq, fee);
-        return true;
+        balances[_from] -= _value;
+        balances[_to] += _value;
+        emit Transfer(_from, _to, _value);
     }
 
-    /**
-     * @dev Performs an atomic batch of transfers on behalf of the from addresses, identified by their signatures.
-     * Lack of nested array support in arguments requires all arguments to be passed as equal size arrays where
-     * delegated transfer number i is the combination of all arguments at index i
-     * @param r the r signatures of the delgatedTransfer msg.
-     * @param s the s signatures of the delgatedTransfer msg.
-     * @param v the v signatures of the delgatedTransfer msg.
-     * @param to The addresses to transfer to.
-     * @param value The amounts to be transferred.
-     * @param fee optional ERC20 fees paid to the delegate of betaDelegatedTransfer by the from address.
-     * @param seq sequencing numbers included by the from address specific to this contract to protect from replays.
-     * @param deadline block numbers after which the pre-signed transactions have expired.
-     * @return A boolean that indicates if the operation was successful.
-     */
-    function betaDelegatedTransferBatch(
-        bytes32[] r, bytes32[] s, uint8[] v, address[] to, uint256[] value, uint256[] fee, uint256[] seq, uint256[] deadline
-    ) public returns (bool) {
-        require(r.length == s.length && r.length == v.length && r.length == to.length && r.length == value.length, "length mismatch");
-        require(r.length == fee.length && r.length == seq.length && r.length == deadline.length, "length mismatch");
-
-        for (uint i = 0; i < r.length; i++) {
-            require(
-                _betaDelegatedTransfer(r[i], s[i], v[i], to[i], value[i], fee[i], seq[i], deadline[i]),
-                "failed transfer"
-            );
-        }
-        return true;
-    }
-
-    /**
-    * @dev Gets whether the address is currently whitelisted for betaDelegateTransfer.
-    * @param _addr The address to check if whitelisted.
-    * @return A bool representing whether the given address is whitelisted.
-    */
-    function isWhitelistedBetaDelegate(address _addr) public view returns (bool) {
-        return betaDelegateWhitelist[_addr];
-    }
-
-    /**
-     * @dev Sets a new betaDelegate whitelister.
-     * @param _newWhitelister The address allowed to whitelist betaDelegates.
-     */
-    function setBetaDelegateWhitelister(address _newWhitelister) public {
-        require(msg.sender == betaDelegateWhitelister || msg.sender == owner, "only Whitelister or Owner");
-        betaDelegateWhitelister = _newWhitelister;
-        emit BetaDelegateWhitelisterSet(betaDelegateWhitelister, _newWhitelister);
-    }
-
-    modifier onlyBetaDelegateWhitelister() {
-        require(msg.sender == betaDelegateWhitelister, "onlyBetaDelegateWhitelister");
-        _;
-    }
-
-    /**
-     * @dev Whitelists an address to allow calling BetaDelegatedTransfer.
-     * @param _addr The new address to whitelist.
-     */
-    function whitelistBetaDelegate(address _addr) public onlyBetaDelegateWhitelister {
-        require(!betaDelegateWhitelist[_addr], "delegate already whitelisted");
-        betaDelegateWhitelist[_addr] = true;
-        emit BetaDelegateWhitelisted(_addr);
-    }
-
-    /**
-     * @dev Unwhitelists an address to disallow calling BetaDelegatedTransfer.
-     * @param _addr The new address to whitelist.
-     */
-    function unwhitelistBetaDelegate(address _addr) public onlyBetaDelegateWhitelister {
-        require(betaDelegateWhitelist[_addr], "delegate not whitelisted");
-        betaDelegateWhitelist[_addr] = false;
-        emit BetaDelegateUnwhitelisted(_addr);
-    }
 }

@@ -69,7 +69,8 @@ contract('ERC20Basic USDP', function ([_, admin, recipient, anotherAccount, owne
         const amount = 100;
 
         it('transfers the requested amount', async function () {
-          await this.token.transfer(to, amount, {from: owner});
+          const {logs} = await this.token.transfer(to, amount, {from: owner});
+          const recp = await web3.eth.getTransactionReceipt(logs[0].transactionHash);
 
           const senderBalance = await this.token.balanceOf(owner);
           assert.equal(senderBalance, 0);

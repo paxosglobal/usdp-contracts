@@ -489,15 +489,15 @@ abstract contract EIP3009 is PaxosBaseAbstract, EIP712Domain {
     }
 }
 
-// File: contracts/USDPImplementation.sol
+// File: contracts/USDPImplementationV3.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
 /**
- * @title USDPImplementation
+ * @title USDPImplementationV3
  * @dev this contract is a Pausable ERC20 token with Burn and Mint
- * controlled by a central SupplyController. By implementing USDPImplementation
+ * controlled by a central SupplyController. By implementing USDPImplementationV3
  * this contract also includes external methods for setting
  * a new implementation contract for the Proxy.
  * NOTE: The storage defined here will actually be held in the Proxy
@@ -506,7 +506,7 @@ pragma solidity 0.8.17;
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract USDPImplementation is PaxosBaseAbstract{
+contract USDPImplementationV3 is PaxosBaseAbstract{
 
     /**
      * DATA
@@ -518,9 +518,9 @@ contract USDPImplementation is PaxosBaseAbstract{
     // ERC20 BASIC DATA
     mapping(address => uint256) internal balances;
     uint256 internal totalSupply_;
-    string public constant name = "USDP USD"; // solhint-disable-line const-name-snakecase
+    string public constant name = "Pax Dollar"; // solhint-disable-line const-name-snakecase
     string public constant symbol = "USDP"; // solhint-disable-line const-name-snakecase
-    uint8 public constant decimals = 6; // solhint-disable-line const-name-snakecase
+    uint8 public constant decimals = 18; // solhint-disable-line const-name-snakecase
 
     // ERC20 DATA
     mapping(address => mapping(address => uint256)) internal allowed;
@@ -558,7 +558,7 @@ contract USDPImplementation is PaxosBaseAbstract{
     // solhint-disable-next-line var-name-mixedcase
     bytes32 public EIP712_DOMAIN_HASH_DEPRECATED;
     // Storage gap: https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#storage-gaps
-    uint256[25] __gap_USDPImplementation;
+    uint256[25] __gap_USDPImplementationV3;
 
     /**
      * EVENTS
@@ -1048,7 +1048,7 @@ contract USDPImplementation is PaxosBaseAbstract{
 
 }
 
-// File: contracts/USDPImplementationV3.sol
+// File: contracts/USDPImplementationV4.sol
 
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
@@ -1057,9 +1057,9 @@ pragma solidity 0.8.17;
 
 
 /**
- * @title USDPImplementationV3
+ * @title USDPImplementationV4
  * @dev this contract is a Pausable ERC20 token with Burn and Mint
- * controlled by a central SupplyController. By implementing USDPImplementationV3
+ * controlled by a central SupplyController. By implementing USDPImplementationV4
  * this contract also includes external methods for setting
  * a new implementation contract for the Proxy.
  * NOTE: The storage defined here will actually be held in the Proxy
@@ -1068,7 +1068,7 @@ pragma solidity 0.8.17;
  * Any call to transfer against this contract should fail
  * with insufficient funds since no tokens will be issued there.
  */
-contract USDPImplementationV3 is USDPImplementation, EIP2612, EIP3009 {
+contract USDPImplementationV4 is USDPImplementationV3, EIP2612, EIP3009 {
     constructor() {
         initializeEIP712DomainSeparator();
     }
