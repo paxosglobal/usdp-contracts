@@ -30,7 +30,7 @@ contract USDPImplementationV3 {
      */
 
     // INITIALIZATION DATA
-    bool private initialized = false;
+    bool private initialized;
 
     // ERC20 BASIC DATA
     mapping(address => uint256) internal balances;
@@ -46,7 +46,7 @@ contract USDPImplementationV3 {
     address public owner;
 
     // PAUSABILITY DATA
-    bool public paused = false;
+    bool public paused;
 
     // ASSET PROTECTION DATA
     address public assetProtectionRole;
@@ -146,11 +146,12 @@ contract USDPImplementationV3 {
      * memory model of the Implementation contract.
      */
     function initialize() public {
-        require(!initialized, "already initialized");
+        require(!initialized, "MANDATORY VERIFICATION REQUIRED: The proxy has already been initialized, verify the owner and supply controller addresses.");
         owner = msg.sender;
         assetProtectionRole = address(0);
         totalSupply_ = 0;
         supplyController = msg.sender;
+        initializeDomainSeparator();
         initialized = true;
     }
 
@@ -163,21 +164,19 @@ contract USDPImplementationV3 {
     constructor() public {
         initialize();
         pause();
-        // Added in V2
         initializeDomainSeparator();
     }
 
     /**
      * @dev To be called when upgrading the contract using upgradeAndCall to add delegated transfers
      */
-    function initializeDomainSeparator() public {
+    function initializeDomainSeparator() private {
         // hash the name context with the contract address
         EIP712_DOMAIN_HASH = keccak256(abi.encodePacked(// solium-disable-line
                 EIP712_DOMAIN_SEPARATOR_SCHEMA_HASH,
                 keccak256(bytes(name)),
                 bytes32(address(this))
             ));
-        proposedOwner = address(0);
     }
 
     // ERC20 BASIC FUNCTIONALITY
@@ -257,6 +256,41 @@ contract USDPImplementationV3 {
         require(!frozen[_spender] && !frozen[msg.sender], "address frozen");
         allowed[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
+        return true;
+    }
+
+    /**
+     * @dev Increase the amount of tokens that an owner allowed to a spender.
+     *
+     * To increment allowed value is better to use this function to avoid 2 calls (and wait until the first transaction
+     * is mined) instead of approve.
+     * @param _spender The address which will spend the funds.
+     * @param _addedValue The amount of tokens to increase the allowance by.
+     */
+    function increaseApproval(address _spender, uint _addedValue) public whenNotPaused returns (bool) {
+        require(!frozen[_spender] && !frozen[msg.sender], "address frozen");
+        allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
+        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+        return true;
+    }
+
+    /**
+     * @dev Decrease the amount of tokens that an owner allowed to a spender.
+     *
+     * To decrement allowed value is better to use this function to avoid 2 calls (and wait until the first transaction
+     * is mined) instead of approve.
+     * @param _spender The address which will spend the funds.
+     * @param _subtractedValue The amount of tokens to decrease the allowance by.
+     */
+    function decreaseApproval(address _spender, uint _subtractedValue) public whenNotPaused returns (bool) {
+        require(!frozen[_spender] && !frozen[msg.sender], "address frozen");
+        uint oldValue = allowed[msg.sender][_spender];
+        if (_subtractedValue > oldValue) {
+            allowed[msg.sender][_spender] = 0;
+        } else {
+            allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+        }
+        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
 
@@ -366,6 +400,7 @@ contract USDPImplementationV3 {
      */
     function setAssetProtectionRole(address _newAssetProtectionRole) public {
         require(msg.sender == assetProtectionRole || msg.sender == owner, "only assetProtectionRole or Owner");
+        require(assetProtectionRole != _newAssetProtectionRole, "new address is same as a current one");
         emit AssetProtectionRoleSet(assetProtectionRole, _newAssetProtectionRole);
         assetProtectionRole = _newAssetProtectionRole;
     }
@@ -428,6 +463,7 @@ contract USDPImplementationV3 {
     function setSupplyController(address _newSupplyController) public {
         require(msg.sender == supplyController || msg.sender == owner, "only SupplyController or Owner");
         require(_newSupplyController != address(0), "cannot set supply controller to address zero");
+        require(supplyController != _newSupplyController, "new address is same as a current one");
         emit SupplyControllerSet(supplyController, _newSupplyController);
         supplyController = _newSupplyController;
     }
@@ -501,7 +537,7 @@ contract USDPImplementationV3 {
             s := mload(add(sig, 64))
             v := byte(0, mload(add(sig, 96)))
         }
-        require(_betaDelegatedTransfer(r, s, v, to, value, fee, seq, deadline), "failed transfer");
+        _betaDelegatedTransfer(r, s, v, to, value, fee, seq, deadline);
         return true;
     }
 
@@ -578,10 +614,7 @@ contract USDPImplementationV3 {
         require(r.length == fee.length && r.length == seq.length && r.length == deadline.length, "length mismatch");
 
         for (uint i = 0; i < r.length; i++) {
-            require(
-                _betaDelegatedTransfer(r[i], s[i], v[i], to[i], value[i], fee[i], seq[i], deadline[i]),
-                "failed transfer"
-            );
+            _betaDelegatedTransfer(r[i], s[i], v[i], to[i], value[i], fee[i], seq[i], deadline[i]);
         }
         return true;
     }
@@ -601,6 +634,7 @@ contract USDPImplementationV3 {
      */
     function setBetaDelegateWhitelister(address _newWhitelister) public {
         require(msg.sender == betaDelegateWhitelister || msg.sender == owner, "only Whitelister or Owner");
+        require(betaDelegateWhitelister != _newWhitelister, "new address is same as a current one");
         betaDelegateWhitelister = _newWhitelister;
         emit BetaDelegateWhitelisterSet(betaDelegateWhitelister, _newWhitelister);
     }

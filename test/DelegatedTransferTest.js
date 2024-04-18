@@ -22,7 +22,6 @@ contract('BetaDelegatedTransfer USDP', function ([_, admin, owner, executor, rec
     const proxy = await Proxy.new(usdp.address, {from: admin});
     const proxiedUSDP = await USDPMock.at(proxy.address);
     await proxiedUSDP.initialize({from: owner});
-    await proxiedUSDP.initializeDomainSeparator({from: owner});
     await proxiedUSDP.initializeBalance(owner, 100);
     this.token = proxiedUSDP;
   });
