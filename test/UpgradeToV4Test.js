@@ -1,10 +1,10 @@
 const {Contracts, getStorageLayout, compareStorageLayouts} = require('@openzeppelin/upgrades');
 
 const ImplBaseContract = Contracts.getFromLocal('USDPImplementationV3');
-const ImplV1Contract = Contracts.getFromLocal('USDPImplementationV4');
+const ImpNewContract = Contracts.getFromLocal('USDPImplementationV4');
 const Proxy = artifacts.require('AdminUpgradeabilityProxy.sol');
 const ImplBase = artifacts.require('USDPImplementationV3.sol');
-let ImplV1 = artifacts.require('USDPImplementationV4.sol');
+let ImplNew = artifacts.require('USDPImplementationV4.sol');
 
 const BN = web3.utils.BN;
 
@@ -14,8 +14,8 @@ const assertRevert = require('./helpers/assertRevert');
 // read every piece of mutable data (constants are not in storage anyway) that exists in the old version
 // and make sure it doesn't change in the upgrade.
 
-// We are testing from base version(without the version specifiction) to V1.
-contract('UpgradeToV1', function (
+// We are testing from base version(without the version specifiction) to V4.
+contract('UpgradeToV4', function (
   [_, admin, owner, supplyController, assetProtection, recipient, purchaser, holder, bystander, frozen]
 ) {
 
@@ -69,7 +69,7 @@ contract('UpgradeToV1', function (
     const proxiedBase = await ImplBase.at(this.proxy.address);
     await proxiedBase.initialize({from: owner});
     this.token = proxiedBase;
-    this.newToken = await ImplV1.at(this.proxy.address);
+    this.newToken = await ImplNew.at(this.proxy.address);
     await this.setData();
 
     // read the data - note: the data here is always read before the upgrade
@@ -93,7 +93,7 @@ contract('UpgradeToV1', function (
   });
 
   it('can survive and integration test when not paused', async function () {
-    this.implV1 = await ImplV1.new({from: owner});
+    this.implNew = await ImplNew.new({from: owner});
 
     // check that the data on the contract is the same as what was read before the upgrade
     await this.checkData();
@@ -110,7 +110,7 @@ contract('UpgradeToV1', function (
     this.paused = await this.token.paused();
     assert.isTrue(this.paused);
 
-    this.implV1 = await ImplV1.new({from: owner});
+    this.implNew = await ImplNew.new({from: owner});
     // check that the data on the contract is the same as what was read before the upgrade
     await this.checkData();
 
@@ -131,10 +131,10 @@ contract('UpgradeToV1', function (
     assert.notStrictEqual(this.token.address, proxiedBase.address);
     assert.notStrictEqual(this.proxy.address, proxy.address);
     this.token = proxiedBase;
-    this.newToken = await ImplV1.at(proxiedBase.address);
+    this.newToken = await ImplNew.at(proxiedBase.address);
     this.proxy = proxy;
 
-    this.implV1 = await ImplV1.new({from: owner});
+    this.implNew = await ImplNew.new({from: owner});
 
     // set the data on the new contracts after the upgrade this time
     await this.setData();
@@ -151,9 +151,9 @@ contract('UpgradeToV1', function (
   // However, solidity does intend to keep it consistent - see https://github.com/ethereum/solidity/issues/4049
   //   also see the documentation on the storage layout pattern: https://github.com/ethereum/solidity/blob/599760b6ab6129797767e6bccfd2a6e842014d80/docs/miscellaneous.rst#layout-of-state-variables-in-storage
   it('has the same storage layout according to the AST-based tool from zeppelin os', function () {
-    const layout = getStorageLayout(ImplBaseContract);
-    const layoutV1 = getStorageLayout(ImplV1Contract);
-    const comparison = compareStorageLayouts(layout, layoutV1);
+    const layoutOld = getStorageLayout(ImplBaseContract);
+    const layoutNew = getStorageLayout(ImpNewContract);
+    const comparison = compareStorageLayouts(layoutOld, layoutNew);
 
     // The only changes should be expected additions - note action = 'append'!
     assertChanges(comparison.filter(function (item) {return item["action"] != "append"}), []);
