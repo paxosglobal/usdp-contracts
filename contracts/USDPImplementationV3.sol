@@ -208,7 +208,7 @@ contract USDPImplementationV3 {
 
     /**
     * @dev Gets the balance of the specified address.
-    * @param _addr The address to query the the balance of.
+    * @param _addr The address to query the balance of.
     * @return An uint256 representing the amount owned by the passed address.
     */
     function balanceOf(address _addr) public view returns (uint256) {
