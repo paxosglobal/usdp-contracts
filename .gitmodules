@@ -1,0 +1,3 @@
+[submodule "paxos-token-contracts"]
+	path = paxos-token-contracts
+	url = git@github.com:paxosglobal/paxos-token-contracts.git
