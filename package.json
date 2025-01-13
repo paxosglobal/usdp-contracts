@@ -1,50 +1,62 @@
 {
-  "name": "pax",
-  "version": "0.0.1",
-  "description": "Paxos-issued USD-collateralized ERC20 stablecoin",
-  "main": "truffle.js",
+  "name": "USDP",
+  "version": "2.0.0",
+  "description": "PayPal-issued USD-collateralized ERC20 stablecoin",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "truffle-abi": "cat build/contracts/USDPImplementationV3.json | jq -c .abi > USDP.abi",
-    "truffle-bin": "cat build/contracts/USDPImplementationV3.json | jq  -r .bytecode > USDP.bin",
-    "compile": "truffle compile",
-    "coverage": "solidity-coverage",
-    "flatten-impl": "truffle-flattener contracts/USDPImplementationV3.sol > ./flattened/USDPImplementationV3.sol",
-    "flatten-proxy": "truffle-flattener ./contracts/zeppelin/AdminUpgradeabilityProxy.sol > ./flattened/AdminUpgradeabilityProxy.sol",
-    "ganache": "ganache-cli",
-    "migrate": "truffle migrate",
-    "solium": "solium -d contracts/ --fix",
-    "test": "truffle test"
+    "generate-abi": "cat artifacts/contracts/USDP.sol/USDP.json | jq -c .abi > USDP.abi",
+    "generate-bin": "cat artifacts/contracts/USDP.sol/USDP.json | jq -r .bytecode > USDP.bin",
+    "compile": "npx hardhat compile",
+    "flatten-impl": "npx hardhat flatten contracts/USDP.sol",
+    "prettier": "prettier --write --plugin=prettier-plugin-solidity 'contracts/*.sol'",
+    "size": "npx hardhat size-contracts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/paxosglobal/pax-contracts.git"
+    "url": "git+https://github.com/paxosglobal/usdp-contracts.git"
   },
   "author": "PAXOS",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/paxosglobal/pax-contracts/issues"
+    "url": "https://github.com/paxosglobal/usdp-contracts/issues"
   },
-  "homepage": "https://github.com/paxosglobal/pax-contracts#readme",
-  "dependencies": {},
+  "homepage": "https://github.com/paxosglobal/usdp-contracts#readme",
   "devDependencies": {
-    "@openzeppelin/test-helpers": "^0.5.10",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.3",
+    "@nomicfoundation/hardhat-ethers": "^3.0.4",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@nomicfoundation/hardhat-verify": "^1.1.1",
+    "@nomiclabs/hardhat-etherscan": "^3.1.8",
+    "@openzeppelin/contracts": "^4.9.3",
+    "@openzeppelin/contracts-upgradeable": "^4.9.3",
+    "@openzeppelin/hardhat-upgrades": "^2.3.3",
     "@openzeppelin/upgrades": "^2.8.0",
-    "@truffle/hdwallet-provider": "^1.2.1",
+    "@typechain/hardhat": "^8.0.3",
+    "@types/mocha": "^9.1.1",
+    "chai": "^4.2.0",
+    "dotenv": "^16.4.1",
     "eth-sig-util": "^3.0.0",
-    "ganache-cli": "^6.12.2",
-    "solc": "^0.4.24",
-    "solidity-coverage": "^0.7.14",
-    "solium": "^1.2.5",
-    "truffle": "^5.1.63",
-    "truffle-flattener": "^1.5.0"
+    "hardhat": "^2.19.5",
+    "hardhat-contract-sizer": "^2.10.0",
+    "hardhat-gas-reporter": "^1.0.8",
+    "prettier": "^3.2.5",
+    "prettier-plugin-solidity": "^1.3.1",
+    "solc": "0.8.17",
+    "solhint": "^4.0.0",
+    "solidity-coverage": "^0.8.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   },
   "resolutions": {
     "axios": "^0.21.1",
     "ajv": "^6.12.3",
     "elliptic": "^6.0.0",
     "diff": "^3.5.0"
+  },
+  "dependencies": {
+    "ganache-cli": "^6.12.2"
   }
 }

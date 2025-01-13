@@ -7,3 +7,8 @@ coverage.json
 coverageEnv/
 scTopics
 allFiredEvents
+artifacts/
+cache/
+typechain-types/
+
+.env
