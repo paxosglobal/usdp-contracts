@@ -1,17 +1,24 @@
 # Pax Dollar (USDP)
 Paxos-issued USD-collateralized ERC20 stablecoin public smart contract repository.
 
-https://www.paxos.com/standard
+https://www.paxos.com/usdp
 
-The whitepaper can be found [here](https://standard.paxos.com/whitepaper.pdf).
+The whitepaper can be found [here](https://account.paxos.com/whitepaper.pdf).
 
 ## ABI, Address, and Verification
 
 The contract abi is in `USDP.abi`. It is the abi of the implementation contract.
 Interaction with Pax Dollar is done at the address of the proxy at `0x8e870d67f660d95d5be530380d0ec0bd388289e1`. See
 https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1 for live on-chain details, and the section on bytecode verification below.
-See also our independent security audits by [Nomic Labs](https://medium.com/nomic-labs-blog/paxos-standard-pax-audit-report-ca743c9575dc), [ChainSecurity](https://medium.com/chainsecurity/paxos-standard-audit-completed-2e9a0064e8bb),
+
+## Audits
+### USDP v1 Audit
+The initial independent security audits were conducted by [Nomic Labs](https://medium.com/nomic-labs-blog/paxos-standard-pax-audit-report-ca743c9575dc), [ChainSecurity](https://medium.com/chainsecurity/paxos-standard-audit-completed-2e9a0064e8bb),
 and [Trail of Bits](https://github.com/trailofbits/publications/blob/master/reviews/paxos.pdf).
+
+### USDP v2 Audit
+Audits were also performed by Zellic and Trail of Bits on the new USDP v2 implementation. The PaxosTokenV2 audit reports can be 
+found [here](https://github.com/paxosglobal/paxos-token-contracts/blob/master/audits/).
 
 ## Contract Specification
 
@@ -30,6 +37,8 @@ specified by [EIP-20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.m
 - `balanceOf(address who)`
 - `transfer(address to, uint256 value)`
 - `approve(address spender, uint256 value)`
+- `increaseApproval(address spender, uint256 addedValue)`
+- `decreaseApproval(address spender, uint256 subtractedValue)`
 - `allowance(address owner, address spender)`
 - `transferFrom(address from, address to, uint256 value)`
 
@@ -51,30 +60,17 @@ transaction at a similar time that the owner sends the new `approve` transaction
 and the `transferFrom` by the spender goes through first, then the spender gets to use the 
 original allowance, and also get approved for the intended new allowance.
 
-The recommended mitigation in cases where the owner does not trust the spender is to
-first set the allowance to zero before setting it to a new amount, checking that the 
-allowance was not spent before sending the new approval transaction. Note, however, that any 
-allowance change is subject to front-running, which is as simple as watching the 
-mempool for certain transactions and then offering a higher gas price to get another 
-transaction mined onto the blockchain more quickly.
+To mitigate this risk, we recommend that smart contract users utilize the alternative functions `increaseApproval` and
+`decreaseApproval` instead of using `approve` directly.
 
 ### Controlling the token supply
 
-The total supply of USDP is backed by fiat held in reserve at Paxos.
-There is a single `supplyController` address that can mint and burn the token
-based on the actual movement of cash in and out of the reserve based on
-requests for the purchase and redemption of USDP.
+USDP uses a separately deployed `SupplyControl` contract to control the token supply. `SupplyControl` has a `SUPPLY_CONTROLLER_MANAGER_ROLE` which is responsible for managing addresses with the `SUPPLY_CONTROLLER_ROLE`, referred
+to as supplyControllers. Only supplyControllers can mint and burn tokens. SupplyControllers can optionally have rate 
+limits to limit how many tokens can be minted over a given time frame.
 
-The supply control interface includes methods to get the current address
-of the supply controller, and events to monitor the change in supply of USDP.
-
-- `supplyController()`
-
-Supply Control Events
-
-- `SupplyIncreased(address indexed to, uint256 value)`
-- `SupplyDecreased(address indexed from, uint256 value)`
-- `SupplyControllerSet(address indexed oldSupplyController, address indexed newSupplyController)`
+`SupplyControl` also includes functions to get all of the supply controller addresses
+and get configuration for a specific supply controller.
 
 ### Pausing the contract
 
@@ -85,32 +81,77 @@ and approvals of the USDP token. The ability to pause is controlled by a single 
 The simple model for pausing transfers following OpenZeppelin's
 [Pausable](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/5daaf60d11ee2075260d0f3adfb22b1c536db983/contracts/lifecycle/Pausable.sol).
 
+While paused, the supply controller retains the ability to mint and burn tokens.
+
 ### Asset Protection Role
 
-As required by our regulators, we have introduced a role for asset protection to freeze or seize the assets of a criminal party when required to do so by law, including by court order or other legal process.
-
-The `assetProtectionRole` can freeze and unfreeze the USDP balance of any address on chain.
+The `ASSET_PROTECTION_ROLE` can freeze and unfreeze the token balance of any address on chain.
 It can also wipe the balance of an address after it is frozen
-to allow the appropriate authorities to seize the backing assets. 
+to allow the appropriate authorities to seize the backing assets.
 
 Freezing is something that Paxos will not do on its own accord,
-and as such we expect to happen extremely rarely. The list of frozen addresses is available
-in `isFrozen(address who)`.
+and as such we expect to happen extremely rarely. Checking if an address is frozen is possible
+via `isFrozen(address who)`.
 
-### BetaDelegateTransfer
+### Delegate Transfer 
 
-  In order to allow for gas-less transactions we have implemented a variation of [EIP-865](https://github.com/ethereum/EIPs/issues/865).
- The public function betaDelegatedTransfer and betaDelegatedTransferBatch allow an approved party to transfer BUSD
- on the end user's behalf given a signed message from said user. Because EIP-865 is not finalized,
- all methods related to delegated transfers are prefixed by Beta. Only approved parties are allowed to transfer
- BUSD on a user's behalf because of potential attacks associated with signing messages.
- To mitigate some attacks, [EIP-712](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md)
- is implemented which provides a structured message to be displayed for verification when signing.
+To facilitate gas-less transactions, we have implemented [EIP-3009](https://eips.ethereum.org/EIPS/eip-3009) and [EIP-2612](https://eips.ethereum.org/EIPS/eip-2612).
+
+#### EIP-3009
+The public functions, `transferWithAuthorization` and `transferWithAuthorizationBatch` (for multiple transfers request), allows a spender(delegate) to transfer tokens on behalf of the sender, with condition that a signature, conforming to [EIP-712](https://eips.ethereum.org/EIPS/eip-712), is provided by the respective sender.
+
  ```
- function betaDelegatedTransfer(
-    bytes sig, address to, uint256 value, uint256 fee, uint256 seq, uint256 deadline
- ) public returns (bool) {
+function transferWithAuthorization(
+    address from,
+    address to,
+    uint256 value,
+    uint256 validAfter,
+    uint256 validBefore,
+    bytes32 nonce,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+) external;
+
+function transferWithAuthorizationBatch(
+    address[] memory from,
+    address[] memory to,
+    uint256[] memory value,
+    uint256[] memory validAfter,
+    uint256[] memory validBefore,
+    bytes32[] memory nonce,
+    uint8[] memory v,
+    bytes32[] memory r,
+    bytes32[] memory s
+) external;
  ```
+
+#### EIP-2612
+The sender can establish an allowance for the spender using the permit function, which employs an EIP-712 signature for authorization. Subsequently, the spender can employ the `transferFrom` and `transferFromBatch` functions to initiate transfers on behalf of the sender.
+
+```
+function permit(
+    address owner,
+    address spender,
+    uint value,
+    uint deadline,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+) external;
+
+function transferFrom(
+    address _from,
+    address _to,
+    uint256 _value
+) public returns (bool);
+
+function transferFromBatch(
+    address[] calldata _from,
+    address[] calldata _to,
+    uint256[] calldata _value
+) public returns (bool);
+```
 
 ### Upgradeability Proxy
 
@@ -138,26 +179,30 @@ to the proxy contract.
 ## Bytecode verification
 
 The proxy contract and implementation contracts are verified on etherscan at the following links:
-https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1
-https://etherscan.io/token/0xb54d4E8BB827f99af764b37249990Fa9D6840E20
+- Proxy: https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1
+- Implementation: https://etherscan.io/token/0x28eDAB7eEC878d54fa877fFFf4604DFD649F533F
 
-Because the implementation address in the proxy is a private variable, 
-verifying that this is the proxy being used requires reading contract
-storage directly. This can be done using a mainnet node, such as infura,
-by pasting the network address in `truffle-config.js` and running 
+The SupplyControl contract and implementation contracts are verified on etherscan at the following links:
+- Proxy: https://etherscan.io/address/0xDc55B5F0f2d441C1116DcC3b9D56314Da7f5496D
+- Implementation: https://etherscan.io/address/0xc896C7777f85cf8eDF9Dcb2EE40274b7307da488
 
-`truffle exec ./getImplementationAddress.js --network mainnet`
+## Paxos Support
 
-## Contract Tests
+Visit Paxos [USDP](https://paxos.com/USDP/) website for more information.
 
-To run smart contract tests first start 
+### Testnet Faucet
 
-`ganache-cli`
+Paxos [Faucet](https://faucet.paxos.com/) to get USDP on testnet.
 
-in another terminal
+### Solana
 
-Then run 
+USDP is also available on the Solana network. You can interact with the USDP token at the [address](https://explorer.solana.com/address/HVbpJAQGNpkgBaYBZQBR1t7yFdvaYVp2vCQQfKKEN4tM): `HVbpJAQGNpkgBaYBZQBR1t7yFdvaYVp2vCQQfKKEN4tM`.
 
-`make test-contracts`
+## Local setup
+Install dependencies:
 
-You can also run `make test-contracts-coverage` to see a coverage report.
+`npm install`
+
+Compile the contracts:
+
+`npm run compile`
