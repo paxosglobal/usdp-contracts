@@ -180,7 +180,7 @@ to the proxy contract.
 
 The proxy contract and implementation contracts are verified on etherscan at the following links:
 - Proxy: https://etherscan.io/token/0x8e870d67f660d95d5be530380d0ec0bd388289e1
-- Implementation: https://etherscan.io/token/0x28eDAB7eEC878d54fa877fFFf4604DFD649F533F
+- Implementation: https://etherscan.io/token/0xf459Ff5EC7d1F371CB34754BDA5FE5FCE2c9054d
 
 The SupplyControl contract and implementation contracts are verified on etherscan at the following links:
 - Proxy: https://etherscan.io/address/0xDc55B5F0f2d441C1116DcC3b9D56314Da7f5496D
